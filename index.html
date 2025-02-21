@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>时刻天机</title>
+    
+    <!-- Bootstrap 5 样式库 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 500px;
+            margin-top: 50px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        td {
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        button {
+            width: 100%;
+            font-size: 18px;
+        }
+
+        .gang { font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container text-center">
+        <h2 class="mb-3">时刻天机</h2>
+        <button class="btn btn-success" onclick="getLunarInfo()">排盘</button>
+
+        <!-- 2x3 表格 -->
+        <table id="zodiac-table" class="table table-bordered mt-3 d-none">
+            <tr>
+                <td class="table-primary">时柱</td>
+                <td class="table-primary">刻柱</td>
+            </tr>
+            <tr>
+                <td id="hour-gang"></td>
+                <td id="ke-gang"></td>
+            </tr>
+            <tr>
+                <td id="hour-zhi"></td>
+                <td id="ke-zhi"></td>
+            </tr>
+            <tr>
+                <td id="naYin-hour"></td>
+                <td id="naYin-ke"></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Bootstrap 5 脚本 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 引入 Lunar.js 计算农历 -->
+    <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
+
+    <!-- 引入外部的纳音映射 -->
+    <script src="nayin.js"></script>
+
+    <script>
+        // 五行颜色
+        const fiveElementColors = {
+            '甲': '#317023',  // 木
+            '乙': '#317023',  // 木
+            '丙': '#ce2d20',  // 火
+            '丁': '#ce2d20',  // 火
+            '戊': '#98511e',  // 土
+            '己': '#98511e',  // 土
+            '庚': '#e08433',  // 金
+            '辛': '#e08433',  // 金
+            '壬': '#0803a8',  // 水
+            '癸': '#0803a8',  // 水
+            '子': '#0803a8',  // 水
+            '丑': '#98511e',  // 土
+            '寅': '#317023',  // 木
+            '卯': '#317023',  // 木
+            '辰': '#98511e',  // 土
+            '巳': '#ce2d20',  // 火
+            '午': '#ce2d20',  // 火
+            '未': '#98511e',  // 土
+            '申': '#e08433',  // 金
+            '酉': '#e08433',  // 金
+            '戌': '#98511e',  // 土
+            '亥': '#0803a8'   // 水
+        };
+
+        // 根据纳音最后一个字符给它设置颜色
+        const naYinColors = {
+            '金': '#e08433',
+            '木': '#317023',
+            '火': '#ce2d20',
+            '土': '#98511e',
+            '水': '#0803a8'
+        };
+
+        function getLunarInfo() {
+            const now = new Date();
+            const lunar = Lunar.fromDate(now);
+
+            // 获取当前时柱
+            const timeGangZhi = lunar.getTimeInGanZhi(); // 例如 "丙午"
+            const timeGang = timeGangZhi.charAt(0); // 时干
+            const timeZhi = timeGangZhi.charAt(1); // 时支
+
+            // 刻支计算（固定12个地支循环）
+            const keIndex = Math.floor((now.getMinutes() + now.getSeconds() / 60) / 10); // 计算当前刻序号
+            const keZhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            const keZhi = keZhiList[keIndex]; // 获取刻支
+
+            // 刻干计算（五子元遁规则）
+            const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+            let keStartGan;
+
+            if (['甲', '己'].includes(timeGang)) keStartGan = '甲';
+            else if (['乙', '庚'].includes(timeGang)) keStartGan = '丙';
+            else if (['丙', '辛'].includes(timeGang)) keStartGan = '戊';
+            else if (['丁', '壬'].includes(timeGang)) keStartGan = '庚';
+            else if (['戊', '癸'].includes(timeGang)) keStartGan = '壬';
+
+            // 根据起点，计算当前刻干
+            const startIndex = ganList.indexOf(keStartGan);
+            const keGang = ganList[(startIndex + keIndex) % 10]; // 五子遁计算
+
+            // 拼接时柱、刻干和刻支生成对应的纳音
+            const timeGangZhiStr = timeGang + timeZhi; // 拼接时干和时支
+            const keGangZhiStr = keGang + keZhi; // 拼接刻干和刻支
+
+            const naYinTime = naYinMap[timeGangZhiStr] || '未知纳音';
+            const naYinKe = naYinMap[keGangZhiStr] || '未知纳音';
+
+            // 获取纳音最后一个字符的颜色
+            const naYinTimeColor = naYinColors[naYinTime.slice(-1)] || '#000000';
+            const naYinKeColor = naYinColors[naYinKe.slice(-1)] || '#000000';
+
+            // 更新表格内容并改变文字颜色
+            document.getElementById('hour-gang').textContent = timeGang;
+            document.getElementById('hour-gang').style.color = fiveElementColors[timeGang];
+
+            document.getElementById('ke-gang').textContent = keGang;
+            document.getElementById('ke-gang').style.color = fiveElementColors[keGang];
+
+            document.getElementById('hour-zhi').textContent = timeZhi;
+            document.getElementById('hour-zhi').style.color = fiveElementColors[timeZhi];
+
+            document.getElementById('ke-zhi').textContent = keZhi;
+            document.getElementById('ke-zhi').style.color = fiveElementColors[keZhi];
+
+            document.getElementById('naYin-hour').textContent = naYinTime;
+            document.getElementById('naYin-hour').style.color = naYinTimeColor;
+
+            document.getElementById('naYin-ke').textContent = naYinKe;
+            document.getElementById('naYin-ke').style.color = naYinKeColor;
+
+            document.getElementById('zodiac-table').classList.remove('d-none');
+        }
+    </script>
+</body>
+</html>
