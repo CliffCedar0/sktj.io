@@ -87,6 +87,11 @@
                 <td id="naYin-hour"></td>
                 <td id="naYin-ke"></td>
             </tr>
+            <tr></tr>
+                <td class="table-primary">透干</td>
+                <td id="hour-tougan"></td>
+                <td id="ke-tougan"></td>
+            </tr>
         </table>
     </div>
 
@@ -98,6 +103,9 @@
 
     <!-- 引入外部的纳音映射 -->
     <script src="nayin.js"></script>
+
+    <!-- 引入透干数据 -->
+    <script src="tougan.js"></script>
 
     <script>
         // 五行颜色
@@ -134,6 +142,36 @@
             '土': '#98511e',
             '水': '#0803a8'
         };
+
+        // 透干颜色映射
+        const touganColors = {
+            '甲': '#317023',  // 木
+            '乙': '#317023',  // 木
+            '丙': '#ce2d20',  // 火
+            '丁': '#ce2d20',  // 火
+            '戊': '#98511e',  // 土
+            '己': '#98511e',  // 土
+            '庚': '#e08433',  // 金
+            '辛': '#e08433',  // 金
+            '壬': '#0803a8',  // 水
+            '癸': '#0803a8'   // 水
+        };
+
+        // 地支藏干数据
+        const touganData = [
+            { 地支: '子', 藏干: '癸' },
+            { 地支: '丑', 藏干: '己、癸、辛' },
+            { 地支: '寅', 藏干: '甲、丙、戊' },
+            { 地支: '卯', 藏干: '乙' },
+            { 地支: '辰', 藏干: '戊、乙、癸' },
+            { 地支: '巳', 藏干: '丙、庚、戊' },
+            { 地支: '午', 藏干: '丁、己' },
+            { 地支: '未', 藏干: '己、丁、乙' },
+            { 地支: '申', 藏干: '庚、壬、戊' },
+            { 地支: '酉', 藏干: '辛' },
+            { 地支: '戌', 藏干: '戊、辛、丁' },
+            { 地支: '亥', 藏干: '壬、甲' }
+        ];
 
         // 获取当前时间或自定义时间
         function getSelectedTime() {
@@ -181,9 +219,9 @@
             const naYinTime = naYinMap[timeGangZhiStr] || '未知纳音';
             const naYinKe = naYinMap[keGangZhiStr] || '未知纳音';
 
-            // 获取纳音最后一个字符的颜色
-            const naYinTimeColor = naYinColors[naYinTime.slice(-1)] || '#000000';
-            const naYinKeColor = naYinColors[naYinKe.slice(-1)] || '#000000';
+            // 获取透干
+            const hourTougan = getTougan(timeZhi);
+            const keTougan = getTougan(keZhi);
 
             // 更新表格内容并改变文字颜色
             document.getElementById('hour-gang').textContent = timeGang;
@@ -199,12 +237,26 @@
             document.getElementById('ke-zhi').style.color = fiveElementColors[keZhi];
 
             document.getElementById('naYin-hour').textContent = naYinTime;
-            document.getElementById('naYin-hour').style.color = naYinTimeColor;
+            document.getElementById('naYin-hour').style.color = naYinColors[naYinTime.slice(-1)];
 
             document.getElementById('naYin-ke').textContent = naYinKe;
-            document.getElementById('naYin-ke').style.color = naYinKeColor;
+            document.getElementById('naYin-ke').style.color = naYinColors[naYinKe.slice(-1)];
 
+            // // 更新透干表格，并改变文字颜色
+            document.getElementById('hour-tougan').textContent = hourTougan;
+            // document.getElementById('hour-tougan').style.color = touganColors[hourTougan];
+
+            document.getElementById('ke-tougan').textContent = keTougan;
+            // document.getElementById('ke-tougan').style.color = touganColors[keTougan];
+
+            // 显示表格
             document.getElementById('zodiac-table').classList.remove('d-none');
+            document.getElementById('tougan-table').classList.remove('d-none');
+        }
+
+        function getTougan(earthlyBranch) {
+            const tougan = touganData.find(item => item.地支 === earthlyBranch);
+            return tougan ? tougan.藏干 : '未知透干';
         }
 
         // 监听自定义时间单选框，显示/隐藏输入框
