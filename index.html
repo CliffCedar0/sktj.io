@@ -350,16 +350,20 @@
             document.getElementById('naYin-ke').textContent = naYinKe;
             document.getElementById('naYin-ke').style.color = naYinColors[naYinKe.slice(-1)];
 
-            document.getElementById('hour-tougan').textContent = hourTougan;
-            setTouganColor('hour-tougan', hourTougan);
-
-            document.getElementById('ke-tougan').textContent = keTougan;
-            setTouganColor('ke-tougan', keTougan);
+            document.getElementById('hour-tougan').innerHTML = formatTougan(hourTougan);
+            document.getElementById('ke-tougan').innerHTML = formatTougan(keTougan);
 
             document.getElementById('shishen').textContent = shishen;
 
             // 显示表格
             document.getElementById('zodiac-table').classList.remove('d-none');
+        }
+        function formatTougan(tougan) {
+            const elements = tougan.split('、');
+            return elements.map((element, index) => {
+                const color = touganColors[element];
+                return `<span style="color: ${color}">${element}</span>`;
+            }).join('、');
         }
 
         function getTougan(earthlyBranch) {
