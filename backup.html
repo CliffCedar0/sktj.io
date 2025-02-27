@@ -1,20 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>时刻天机</title>
-
-    <!-- Bootstrap 5 样式库 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        .container {
+        body { background-color: #f8f9fa; }
+        .container { 
             max-width: 500px;
             margin-top: 50px;
             background: white;
@@ -22,12 +15,7 @@
             border-radius: 10px;
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-
-        table {
-            width: 100%;
-            margin-top: 15px;
-        }
-
+        table { width: 100%; margin-top: 15px; }
         td {
             padding: 15px;
             border: 1px solid #dee2e6;
@@ -35,25 +23,13 @@
             font-size: 18px;
             font-weight: bold;
         }
-
-        button {
-            width: 100%;
-            font-size: 18px;
-        }
-
-        .gang {
-            font-size: 18px;
-            font-weight: bold;
-        }
+        button { width: 100%; font-size: 18px; }
     </style>
 </head>
-
 <body>
-
     <div class="container text-center">
         <h2 class="mb-3">时刻天机</h2>
 
-        <!-- 单选框选择时间类型 -->
         <div>
             <input type="radio" id="current-time" name="time-selection" checked>
             <label for="current-time">当前时间</label>
@@ -61,330 +37,245 @@
             <label for="custom-time">自定义时间</label>
         </div>
 
-        <!-- 自定义时间输入 -->
         <div id="custom-time-input" class="mt-3 d-none">
-            <label for="custom-date">选择时间:</label>
             <input type="datetime-local" id="custom-date" class="form-control">
         </div>
 
-        <!-- 排盘按钮 -->
-        <button class="btn btn-success mt-3" onclick="getLunarInfo()">排盘</button>
+        <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
 
-        <!-- 2x3 表格 -->
         <table id="zodiac-table" class="table table-bordered mt-3 d-none">
-            <tr>
-                <td class=""></td>
-                <td class="table-primary">时柱</td>
-                <td class="table-primary">刻柱</td>
-            </tr>
-            <tr>
-                <td class="table-primary">十神</td>
-                <td>我</td>
-                <td id="shishen"></td>
-            </tr>
-            <tr>
-                <td class="table-primary">天干</td>
-                <td id="hour-gang"></td>
-                <td id="ke-gang"></td>
-            </tr>
-            <tr>
-                <td class="table-primary">地支</td>
-                <td id="hour-zhi"></td>
-                <td id="ke-zhi"></td>
-            </tr>
-            <tr>
-                <td class="table-primary">纳音</td>
-                <td id="naYin-hour"></td>
-                <td id="naYin-ke"></td>
-            </tr>
-            <tr>
-                <td class="table-primary">透干</td>
-                <td id="hour-tougan"></td>
-                <td id="ke-tougan"></td>
-            </tr>
-            
+            <tr><td></td><td class="table-primary">时柱</td><td class="table-primary">刻柱</td></tr>
+            <tr><td class="table-primary">十神</td><td>我</td><td id="shishen"></td></tr>
+            <tr><td class="table-primary">天干</td><td id="hour-gan"></td><td id="ke-gan"></td></tr>
+            <tr><td class="table-primary">地支</td><td id="hour-zhi"></td><td id="ke-zhi"></td></tr>
+            <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
+            <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
+            <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
         </table>
     </div>
 
-    <!-- Bootstrap 5 脚本 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- 引入 Lunar.js 计算农历 -->
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
 
-    <!-- 引入外部的纳音映射 -->
-    <script src="nayin.js"></script>
-
-    <!-- 引入透干数据 -->
-    <script src="tougan.js"></script>
-
     <script>
-        // 五行颜色
-        const fiveElementColors = {
-            '甲': '#317023',  // 木
-            '乙': '#317023',  // 木
-            '丙': '#ce2d20',  // 火
-            '丁': '#ce2d20',  // 火
-            '戊': '#98511e',  // 土
-            '己': '#98511e',  // 土
-            '庚': '#e08433',  // 金
-            '辛': '#e08433',  // 金
-            '壬': '#0803a8',  // 水
-            '癸': '#0803a8',  // 水
-            '子': '#0803a8',  // 水
-            '丑': '#98511e',  // 土
-            '寅': '#317023',  // 木
-            '卯': '#317023',  // 木
-            '辰': '#98511e',  // 土
-            '巳': '#ce2d20',  // 火
-            '午': '#ce2d20',  // 火
-            '未': '#98511e',  // 土
-            '申': '#e08433',  // 金
-            '酉': '#e08433',  // 金
-            '戌': '#98511e',  // 土
-            '亥': '#0803a8'   // 水
+        // ================== 核心配置 ==================
+        const WUXING_COLORS = {
+            '甲': '#317023', '乙': '#317023',  // 木
+            '丙': '#ce2d20', '丁': '#ce2d20',  // 火
+            '戊': '#98511e', '己': '#98511e',  // 土
+            '庚': '#e08433', '辛': '#e08433',  // 金
+            '壬': '#0803a8', '癸': '#0803a8',  // 水
+            '子': '#0803a8', '丑': '#98511e', '寅': '#317023',
+            '卯': '#317023', '辰': '#98511e', '巳': '#ce2d20',
+            '午': '#ce2d20', '未': '#98511e', '申': '#e08433',
+            '酉': '#e08433', '戌': '#98511e', '亥': '#0803a8'
         };
 
-        // 根据纳音最后一个字符给它设置颜色
+        const TWELVE_LONGEVITY = [
+            '长生', '沐浴', '冠带', '临官', '帝旺', 
+            '衰', '病', '死', '墓', '绝', '胎', '养'
+        ];
+
+        // 创建反向查询字典
+        const longevityMap = {};
+        Object.entries(tenHeavenlyStemsLongevityTable).forEach(([gan, zhiList]) => {
+            longevityMap[gan] = {};
+            zhiList.forEach((zhi, index) => {
+                longevityMap[gan][zhi] = TWELVE_LONGEVITY[index];
+            });
+        });
+
+        const NAYIN_MAP = {
+            '甲子':'海中金', '乙丑':'海中金', '丙寅':'炉中火', '丁卯':'炉中火',
+            '戊辰':'大林木', '己巳':'大林木', '庚午':'路旁土', '辛未':'路旁土',
+            '壬申':'剑锋金', '癸酉':'剑锋金', '甲戌':'山头火', '乙亥':'山头火',
+            '丙子':'洞下水', '丁丑':'洞下水', '戊寅':'城头土', '己卯':'城头土',
+            '庚辰':'白蜡金', '辛巳':'白蜡金', '壬午':'杨柳木', '癸未':'杨柳木',
+            '甲申':'泉中水', '乙酉':'泉中水', '丙戌':'屋上土', '丁亥':'屋上土',
+            '戊子':'霹雳火', '己丑':'霹雳火', '庚寅':'松柏木', '辛卯':'松柏木',
+            '壬辰':'长流水', '癸巳':'长流水', '甲午':'砂中金', '乙未':'砂中金',
+            '丙申':'山下火', '丁酉':'山下火', '戊戌':'平地木', '己亥':'平地木',
+            '庚子':'壁上土', '辛丑':'壁上土', '壬寅':'金箔金', '癸卯':'金箔金',
+            '甲辰':'覆灯火', '乙巳':'覆灯火', '丙午':'天河水', '丁未':'天河水',
+            '戊申':'大驿土', '己酉':'大驿土', '庚戌':'钗钏金', '辛亥':'钗钏金',
+            '壬子':'桑柘木', '癸丑':'桑柘木', '甲寅':'大溪水', '乙卯':'大溪水',
+            '丙辰':'沙中土', '丁巳':'沙中土', '戊午':'天上火', '己未':'天上火',
+            '庚申':'石榴木', '辛酉':'石榴木', '壬戌':'大海水', '癸亥':'大海水'
+        };
+
+        const TOUGAN_MAP = {
+            '子': ['癸'],
+            '丑': ['己','癸','辛'],
+            '寅': ['甲','丙','戊'],
+            '卯': ['乙'],
+            '辰': ['戊','乙','癸'],
+            '巳': ['丙','庚','戊'],
+            '午': ['丁','己'],
+            '未': ['己','丁','乙'],
+            '申': ['庚','壬','戊'],
+            '酉': ['辛'],
+            '戌': ['戊','辛','丁'],
+            '亥': ['壬','甲']
+        };
+
+        const SHISHEN_MAP = {
+            '甲': {甲:'比肩',乙:'劫财',丙:'食神',丁:'伤官',戊:'偏财',己:'正财',庚:'七杀',辛:'正官',壬:'偏印',癸:'正印'},
+            '乙': {甲:'劫财',乙:'比肩',丙:'伤官',丁:'食神',戊:'正财',己:'偏财',庚:'正官',辛:'七杀',壬:'正印',癸:'偏印'},
+            '丙': {甲:'偏印',乙:'正印',丙:'比肩',丁:'劫财',戊:'食神',己:'伤官',庚:'偏财',辛:'正财',壬:'七杀',癸:'正官'},
+            '丁': {甲:'正印',乙:'偏印',丙:'劫财',丁:'比肩',戊:'伤官',己:'食神',庚:'正财',辛:'偏财',壬:'正官',癸:'七杀'},
+            '戊': {甲:'七杀',乙:'正官',丙:'偏印',丁:'正印',戊:'比肩',己:'劫财',庚:'食神',辛:'伤官',壬:'偏财',癸:'正财'},
+            '己': {甲:'正官',乙:'七杀',丙:'正印',丁:'偏印',戊:'劫财',己:'比肩',庚:'伤官',辛:'食神',壬:'正财',癸:'偏财'},
+            '庚': {甲:'偏财',乙:'正财',丙:'七杀',丁:'正官',戊:'偏印',己:'正印',庚:'比肩',辛:'劫财',壬:'食神',癸:'伤官'},
+            '辛': {甲:'正财',乙:'偏财',丙:'正官',丁:'七杀',戊:'正印',己:'偏印',庚:'劫财',辛:'比肩',壬:'伤官',癸:'食神'},
+            '壬': {甲:'食神',乙:'伤官',丙:'偏财',丁:'正财',戊:'七杀',己:'正官',庚:'偏印',辛:'正印',壬:'比肩',癸:'劫财'},
+            '癸': {甲:'伤官',乙:'食神',丙:'正财',丁:'偏财',戊:'正官',己:'七杀',庚:'正印',辛:'偏印',壬:'劫财',癸:'比肩'}
+        };
+
         const naYinColors = {
             '金': '#e08433',
             '木': '#317023',
+            '水': '#0803a8',
             '火': '#ce2d20',
-            '土': '#98511e',
-            '水': '#0803a8'
+            '土': '#98511e'
         };
 
-        // 透干颜色映射
-        const touganColors = {
-            '甲': '#317023',  // 木
-            '乙': '#317023',  // 木
-            '丙': '#ce2d20',  // 火
-            '丁': '#ce2d20',  // 火
-            '戊': '#98511e',  // 土
-            '己': '#98511e',  // 土
-            '庚': '#e08433',  // 金
-            '辛': '#e08433',  // 金
-            '壬': '#0803a8',  // 水
-            '癸': '#0803a8'   // 水
-        };
-
-        // 地支藏干数据
-        const touganData = [
-            { 地支: '子', 藏干: '癸' },
-            { 地支: '丑', 藏干: '己、癸、辛' },
-            { 地支: '寅', 藏干: '甲、丙、戊' },
-            { 地支: '卯', 藏干: '乙' },
-            { 地支: '辰', 藏干: '戊、乙、癸' },
-            { 地支: '巳', 藏干: '丙、庚、戊' },
-            { 地支: '午', 藏干: '丁、己' },
-            { 地支: '未', 藏干: '己、丁、乙' },
-            { 地支: '申', 藏干: '庚、壬、戊' },
-            { 地支: '酉', 藏干: '辛' },
-            { 地支: '戌', 藏干: '戊、辛、丁' },
-            { 地支: '亥', 藏干: '壬、甲' }
-        ];
-
-        // 天干五行属性
-        const heavenlyStemElements = {
-            '甲': '木', '乙': '木', '丙': '火', '丁': '火',
-            '戊': '土', '己': '土', '庚': '金', '辛': '金',
-            '壬': '水', '癸': '水'
-        };
-
-        // 天干阴阳属性
-        const heavenlyStemYinYang = {
-            '甲': '阳', '乙': '阴', '丙': '阳', '丁': '阴',
-            '戊': '阳', '己': '阴', '庚': '阳', '辛': '阴',
-            '壬': '阳', '癸': '阴'
-        };
-
-        // 十神判断函数
-        function getTenGods(self, other) {
-            const selfElement = heavenlyStemElements[self];
-            const otherElement = heavenlyStemElements[other];
-            const selfYinYang = heavenlyStemYinYang[self];
-            const otherYinYang = heavenlyStemYinYang[other];
-
-            if (selfElement === otherElement) {
-                return selfYinYang === otherYinYang ? '比肩' : '劫财';
-            }
-            if (selfElement === '木') {
-                if (otherElement === '火') {
-                    return selfYinYang === otherYinYang ? '食神' : '伤官';
-                }
-                if (otherElement === '土') {
-                    return selfYinYang === otherYinYang ? '偏财' : '正财';
-                }
-                if (otherElement === '金') {
-                    return selfYinYang === otherYinYang ? '七杀' : '正官';
-                }
-                if (otherElement === '水') {
-                    return selfYinYang === otherYinYang ? '偏印' : '正印';
-                }
-            }
-            if (selfElement === '火') {
-                if (otherElement === '土') {
-                    return selfYinYang === otherYinYang ? '食神' : '伤官';
-                }
-                if (otherElement === '金') {
-                    return selfYinYang === otherYinYang ? '偏财' : '正财';
-                }
-                if (otherElement === '水') {
-                    return selfYinYang === otherYinYang ? '七杀' : '正官';
-                }
-                if (otherElement === '木') {
-                    return selfYinYang === otherYinYang ? '偏印' : '正印';
-                }
-            }
-            if (selfElement === '土') {
-                if (otherElement === '金') {
-                    return selfYinYang === otherYinYang ? '食神' : '伤官';
-                }
-                if (otherElement === '水') {
-                    return selfYinYang === otherYinYang ? '偏财' : '正财';
-                }
-                if (otherElement === '木') {
-                    return selfYinYang === otherYinYang ? '七杀' : '正官';
-                }
-                if (otherElement === '火') {
-                    return selfYinYang === otherYinYang ? '偏印' : '正印';
-                }
-            }
-            if (selfElement === '金') {
-                if (otherElement === '水') {
-                    return selfYinYang === otherYinYang ? '食神' : '伤官';
-                }
-                if (otherElement === '木') {
-                    return selfYinYang === otherYinYang ? '偏财' : '正财';
-                }
-                if (otherElement === '火') {
-                    return selfYinYang === otherYinYang ? '七杀' : '正官';
-                }
-                if (otherElement === '土') {
-                    return selfYinYang === otherYinYang ? '偏印' : '正印';
-                }
-            }
-            if (selfElement === '水') {
-                if (otherElement === '木') {
-                    return selfYinYang === otherYinYang ? '食神' : '伤官';
-                }
-                if (otherElement === '火') {
-                    return selfYinYang === otherYinYang ? '偏财' : '正财';
-                }
-                if (otherElement === '土') {
-                    return selfYinYang === otherYinYang ? '七杀' : '正官';
-                }
-                if (otherElement === '金') {
-                    return selfYinYang === otherYinYang ? '偏印' : '正印';
-                }
-            }
-            return '未知十神';
+        // ================== 核心算法 ==================
+        function getKeInfo(date) {
+            const lunar = Lunar.fromDate(date);
+            const timeZhi = lunar.getTimeZhi(); // 当前时辰地支
+            
+            // 各时辰的刻序列（每个时辰12刻，子-亥）
+            const keSequence = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+            
+            // 计算当前时间在时辰内的位置
+            const minutes = date.getMinutes();
+            const seconds = date.getSeconds();
+            const totalSeconds = minutes * 60 + seconds;
+            
+            // 计算刻序（0-11）
+            const keIndex = Math.floor(totalSeconds / 600); // 每600秒一个刻
+            
+            return {
+                keZhi: keSequence[keIndex],
+                keIndex: keIndex
+            };
         }
 
-        // 获取当前时间或自定义时间
-        function getSelectedTime() {
-            const isCustomTime = document.getElementById('custom-time').checked;
-            if (isCustomTime) {
-                const customDate = document.getElementById('custom-date').value;
-                return new Date(customDate);
-            }
-            return new Date();
+        function getKeGan(shiGan, keIndex) {
+            // 五子遁元口诀
+            const starters = {
+                '甲':0, '己':0,   // 甲子
+                '乙':2, '庚':2,   // 丙子
+                '丙':4, '辛':4,   // 戊子
+                '丁':6, '壬':6,   // 庚子
+                '戊':8, '癸':8    // 壬子
+            };
+            const gans = ['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+            return gans[(starters[shiGan] + keIndex) % 10];
         }
 
-        function getLunarInfo() {
-            const now = getSelectedTime();
-            const lunar = Lunar.fromDate(now);
+        // ================== 主逻辑 ==================
+        function calculate() {
+            const date = getSelectedDate();
+            const lunar = Lunar.fromDate(date);
+            
+            // 获取时柱信息
+            const timeGanZhi = lunar.getTimeInGanZhi();
+            const shiGan = timeGanZhi[0];
+            const shiZhi = timeGanZhi[1];
+            
+            // 计算刻柱
+            const { keZhi, keIndex } = getKeInfo(date);
+            const keGan = getKeGan(shiGan, keIndex);
 
-            // 获取当前时柱
-            const timeGangZhi = lunar.getTimeInGanZhi();
-            const timeGang = timeGangZhi.charAt(0);
-            const timeZhi = timeGangZhi.charAt(1);
+            // 计算十二长生
+            const shengxiaoHour = getLongevity(shiGan, shiZhi);
+            const shengxiaoKe = getLongevity(keGan, keZhi);
 
-            // 刻支计算（固定12个地支循环）
-            const keIndex = Math.floor((now.getMinutes() + now.getSeconds() / 60) / 10);
-            const keZhiList = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            const keZhi = keZhiList[keIndex];
-
-            // 刻干计算（五子元遁规则）
-            const ganList = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
-            let keStartGan;
-            if (['甲', '己'].includes(timeGang)) keStartGan = '甲';
-            else if (['乙', '庚'].includes(timeGang)) keStartGan = '丙';
-            else if (['丙', '辛'].includes(timeGang)) keStartGan = '戊';
-            else if (['丁', '壬'].includes(timeGang)) keStartGan = '庚';
-            else if (['戊', '癸'].includes(timeGang)) keStartGan = '壬';
-
-            const startIndex = ganList.indexOf(keStartGan);
-            const keGang = ganList[(startIndex + keIndex) % 10];
-
-            // 拼接时柱、刻干和刻支生成对应的纳音
-            const timeGangZhiStr = timeGang + timeZhi;
-            const keGangZhiStr = keGang + keZhi;
-
-            const naYinTime = naYinMap[timeGangZhiStr] || '未知纳音';
-            const naYinKe = naYinMap[keGangZhiStr] || '未知纳音';
-
-            // 获取透干
-            const hourTougan = getTougan(timeZhi);
-            const keTougan = getTougan(keZhi);
-
-            // 计算十神
-            const shishen = getTenGods(timeGang, keGang);
-
-            // 更新表格内容并改变文字颜色
-            document.getElementById('hour-gang').textContent = timeGang;
-            document.getElementById('hour-gang').style.color = fiveElementColors[timeGang];
-
-            document.getElementById('ke-gang').textContent = keGang;
-            document.getElementById('ke-gang').style.color = fiveElementColors[keGang];
-
-            document.getElementById('hour-zhi').textContent = timeZhi;
-            document.getElementById('hour-zhi').style.color = fiveElementColors[timeZhi];
-
-            document.getElementById('ke-zhi').textContent = keZhi;
-            document.getElementById('ke-zhi').style.color = fiveElementColors[keZhi];
-
-            document.getElementById('naYin-hour').textContent = naYinTime;
-            document.getElementById('naYin-hour').style.color = naYinColors[naYinTime.slice(-1)];
-
-            document.getElementById('naYin-ke').textContent = naYinKe;
-            document.getElementById('naYin-ke').style.color = naYinColors[naYinKe.slice(-1)];
-
-            document.getElementById('hour-tougan').textContent = hourTougan;
-            setTouganColor('hour-tougan', hourTougan);
-
-            document.getElementById('ke-tougan').textContent = keTougan;
-            setTouganColor('ke-tougan', keTougan);
-
-            document.getElementById('shishen').textContent = shishen;
-
-            // 显示表格
-            document.getElementById('zodiac-table').classList.remove('d-none');
-        }
-
-        function getTougan(earthlyBranch) {
-            const tougan = touganData.find(item => item.地支 === earthlyBranch);
-            return tougan ? tougan.藏干 : '未知透干';
-        }
-
-        function setTouganColor(id, tougan) {
-            const elements = tougan.split('、');
-            elements.forEach((element) => {
-                if (touganColors[element]) {
-                    document.getElementById(id).style.color = touganColors[element];
-                }
+            // 更新界面
+            updateDisplay({
+                shiGan, 
+                shiZhi,
+                keGan, 
+                keZhi,
+                shengxiaoHour,
+                shengxiaoKe ,
+                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
+                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
+                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
+                touganHour: TOUGAN_MAP[shiZhi] || [],
+                touganKe: TOUGAN_MAP[keZhi] || []
             });
         }
 
-        // 监听自定义时间单选框，显示/隐藏输入框
-        document.getElementById('custom-time').addEventListener('change', function () {
-            document.getElementById('custom-time-input').classList.remove('d-none');
-        });
+        // ================== 工具函数 ==================
+        function getSelectedDate() {
+            if (document.getElementById('custom-time').checked) {
+                return new Date(document.getElementById('custom-date').value);
+            }
+            return new Date();
+        }
+        
+        function getLongevity(gan, zhi) {
+            return longevityMap[gan]?.[zhi] || '未知';
+        }
 
-        document.getElementById('current-time').addEventListener('change', function () {
-            document.getElementById('custom-time-input').classList.add('d-none');
+        function updateDisplay(data) {
+            // 时柱信息
+            setCell('hour-gan', data.shiGan);
+            setCell('hour-zhi', data.shiZhi);
+            
+            // 刻柱信息
+            setCell('ke-gan', data.keGan);
+            setCell('ke-zhi', data.keZhi);
+
+            // 十二长生显示
+            setLongevity('shengxiao-hour', data.shengxiaoHour, shiZhi);
+            setLongevity('shengxiao-ke', data.shengxiaoKe, keZhi);
+            
+            
+            // 复杂数据
+            setNaYinColor('nayin-hour', data.nayinHour);
+            setNaYinColor('nayin-ke', data.nayinKe);
+            setCell('shishen', data.shishen);
+            setStyledTougan('tougan-hour', data.touganHour);
+            setStyledTougan('tougan-ke', data.touganKe);
+            
+            document.getElementById('zodiac-table').classList.remove('d-none');
+        }
+
+        function setCell(id, text) {
+            const element = document.getElementById(id);
+            element.textContent = text;
+            element.style.color = WUXING_COLORS[text] || '#000';
+        }
+
+        function setNaYinColor(elementId, nayin) {
+            const element = document.getElementById(elementId);
+            const lastChar = nayin?.slice(-1);
+            element.textContent = nayin;
+            element.style.color = lastChar ? naYinColors[lastChar] : '#000';
+        }
+
+        function setStyledTougan(id, ganzhi) {
+            const element = document.getElementById(id);
+            element.innerHTML = ganzhi?.map(c => 
+                `<span style="color: ${WUXING_COLORS[c]}">${c}</span>`
+            ).join('、') || '无';
+        }
+        
+        // 添加样式设置函数
+        function setLongevity(id, text, zhi) {
+            const element = document.getElementById(id);
+            element.textContent = text;
+            element.style.color = WUXING_COLORS[zhi] || '#000'; 
+            element.innerHTML = `<span style="color: ${WUXING_COLORS[zhi]}">${text}</span>`;
+        }
+
+        // ================== 事件监听 ==================
+        document.getElementById('custom-time').addEventListener('change', () => {
+            document.getElementById('custom-time-input').classList.toggle('d-none');
         });
     </script>
 </body>
-
 </html>
