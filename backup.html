@@ -76,6 +76,19 @@
             '衰', '病', '死', '墓', '绝', '胎', '养'
         ];
 
+        const tenHeavenlyStemsLongevityTable = {
+            "甲": ["亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"],
+            "乙": ["亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"],
+            "丙": ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"],
+            "丁": ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"],
+            "戊": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "己": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "庚": ["巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"],
+            "辛": ["巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"],
+            "壬": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "癸": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"]
+        };
+
         // 创建反向查询字典
         const longevityMap = {};
         Object.entries(tenHeavenlyStemsLongevityTable).forEach(([gan, zhiList]) => {
@@ -199,7 +212,7 @@
                 keGan, 
                 keZhi,
                 shengxiaoHour,
-                shengxiaoKe ,
+                shengxiaoKe,
                 nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
                 nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
@@ -230,11 +243,10 @@
             setCell('ke-zhi', data.keZhi);
 
             // 十二长生显示
-            setLongevity('shengxiao-hour', data.shengxiaoHour, shiZhi);
-            setLongevity('shengxiao-ke', data.shengxiaoKe, keZhi);
+            setLongevity('shengxiao-hour', data.shengxiaoHour, data.shiZhi);
+            setLongevity('shengxiao-ke', data.shengxiaoKe, data.keZhi);
             
-            
-            // 复杂数据
+            // 其他数据
             setNaYinColor('nayin-hour', data.nayinHour);
             setNaYinColor('nayin-ke', data.nayinKe);
             setCell('shishen', data.shishen);
@@ -264,11 +276,8 @@
             ).join('、') || '无';
         }
         
-        // 添加样式设置函数
         function setLongevity(id, text, zhi) {
             const element = document.getElementById(id);
-            element.textContent = text;
-            element.style.color = WUXING_COLORS[zhi] || '#000'; 
             element.innerHTML = `<span style="color: ${WUXING_COLORS[zhi]}">${text}</span>`;
         }
 

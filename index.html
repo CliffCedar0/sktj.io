@@ -50,6 +50,7 @@
             <tr><td class="table-primary">地支</td><td id="hour-zhi"></td><td id="ke-zhi"></td></tr>
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
+            <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
         </table>
     </div>
 
@@ -69,6 +70,33 @@
             '午': '#ce2d20', '未': '#98511e', '申': '#e08433',
             '酉': '#e08433', '戌': '#98511e', '亥': '#0803a8'
         };
+
+        const TWELVE_LONGEVITY = [
+            '长生', '沐浴', '冠带', '临官', '帝旺', 
+            '衰', '病', '死', '墓', '绝', '胎', '养'
+        ];
+
+        const tenHeavenlyStemsLongevityTable = {
+            "甲": ["亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"],
+            "乙": ["亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌"],
+            "丙": ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"],
+            "丁": ["寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"],
+            "戊": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "己": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "庚": ["巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"],
+            "辛": ["巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰"],
+            "壬": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"],
+            "癸": ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"]
+        };
+
+        // 创建反向查询字典
+        const longevityMap = {};
+        Object.entries(tenHeavenlyStemsLongevityTable).forEach(([gan, zhiList]) => {
+            longevityMap[gan] = {};
+            zhiList.forEach((zhi, index) => {
+                longevityMap[gan][zhi] = TWELVE_LONGEVITY[index];
+            });
+        });
 
         const NAYIN_MAP = {
             '甲子':'海中金', '乙丑':'海中金', '丙寅':'炉中火', '丁卯':'炉中火',
@@ -173,12 +201,18 @@
             const { keZhi, keIndex } = getKeInfo(date);
             const keGan = getKeGan(shiGan, keIndex);
 
+            // 计算十二长生
+            const shengxiaoHour = getLongevity(shiGan, shiZhi);
+            const shengxiaoKe = getLongevity(keGan, keZhi);
+
             // 更新界面
             updateDisplay({
                 shiGan, 
                 shiZhi,
                 keGan, 
                 keZhi,
+                shengxiaoHour,
+                shengxiaoKe,
                 nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
                 nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
@@ -194,6 +228,10 @@
             }
             return new Date();
         }
+        
+        function getLongevity(gan, zhi) {
+            return longevityMap[gan]?.[zhi] || '未知';
+        }
 
         function updateDisplay(data) {
             // 时柱信息
@@ -203,8 +241,12 @@
             // 刻柱信息
             setCell('ke-gan', data.keGan);
             setCell('ke-zhi', data.keZhi);
+
+            // 十二长生显示
+            setLongevity('shengxiao-hour', data.shengxiaoHour, data.shiZhi);
+            setLongevity('shengxiao-ke', data.shengxiaoKe, data.keZhi);
             
-            // 复杂数据
+            // 其他数据
             setNaYinColor('nayin-hour', data.nayinHour);
             setNaYinColor('nayin-ke', data.nayinKe);
             setCell('shishen', data.shishen);
@@ -232,6 +274,11 @@
             element.innerHTML = ganzhi?.map(c => 
                 `<span style="color: ${WUXING_COLORS[c]}">${c}</span>`
             ).join('、') || '无';
+        }
+        
+        function setLongevity(id, text, zhi) {
+            const element = document.getElementById(id);
+            element.innerHTML = `<span style="color: ${WUXING_COLORS[zhi]}">${text}</span>`;
         }
 
         // ================== 事件监听 ==================
