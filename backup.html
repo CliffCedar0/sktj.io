@@ -29,12 +29,13 @@
 <body>
     <div class="container text-center">
         <h2 class="mb-3">时刻天机</h2>
-
-        <div>
-            <input type="radio" id="current-time" name="time-selection" checked>
-            <label for="current-time">当前时间</label>
-            <input type="radio" id="custom-time" name="time-selection">
-            <label for="custom-time">自定义时间</label>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="time-selection" id="current-time" checked>
+            <label class="form-check-label" for="current-time">当前时间</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="time-selection" id="custom-time">
+            <label class="form-check-label" for="custom-time">自定义时间</label>
         </div>
 
         <div id="custom-time-input" class="mt-3 d-none">
@@ -42,6 +43,21 @@
         </div>
 
         <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
+
+        <table id="full-ganzhi" class="table table-bordered mt-3 d-none">
+            <tr>
+                <td class="table-primary">年柱</td>
+                <td class="table-primary">月柱</td>
+                <td class="table-primary">日柱</td>
+                <td class="table-primary">时柱</td>
+            </tr>
+            <tr>
+                <td id="year-ganzhi" style="width: 25%"></td>
+                <td id="month-ganzhi" style="width: 25%"></td>
+                <td id="day-ganzhi" style="width: 25%"></td>               
+                <td id="hour-ganzhi" style="width: 25%"></td>
+            </tr>
+        </table>
 
         <table id="zodiac-table" class="table table-bordered mt-3 d-none">
             <tr><td></td><td class="table-primary">时柱</td><td class="table-primary">刻柱</td></tr>
@@ -206,7 +222,10 @@
             const timeGanZhi = lunar.getTimeInGanZhi();
             const shiGan = timeGanZhi[0];
             const shiZhi = timeGanZhi[1];
-            
+            const yearGanzhi = lunar.getYearInGanZhi();
+            const monthGanzhi = lunar.getMonthInGanZhi();
+            const dayGanzhi = lunar.getDayInGanZhi();
+
             // 计算刻柱
             const { keZhi, keIndex } = getKeInfo(date);
             const keGan = getKeGan(shiGan, keIndex);
@@ -223,6 +242,10 @@
                 keZhi,
                 shengxiaoHour,
                 shengxiaoKe,
+                yearGanzhi,
+                monthGanzhi,
+                dayGanzhi,
+                hourGanzhi: timeGanZhi,
                 nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
                 nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
@@ -248,6 +271,10 @@
             setCell('hour-gan', data.shiGan);
             setCell('hour-zhi', data.shiZhi);
             
+            setGanzhiColor('year-ganzhi', data.yearGanzhi);
+            setGanzhiColor('month-ganzhi', data.monthGanzhi);
+            setGanzhiColor('day-ganzhi', data.dayGanzhi);
+            setGanzhiColor('hour-ganzhi', data.hourGanzhi);
             // 刻柱信息
             setCell('ke-gan', data.keGan);
             setCell('ke-zhi', data.keZhi);
@@ -264,6 +291,7 @@
             setStyledTougan('tougan-ke', data.touganKe);
             
             document.getElementById('zodiac-table').classList.remove('d-none');
+            document.getElementById('full-ganzhi').classList.remove('d-none');
         }
 
         function setCell(id, text) {
@@ -289,6 +317,14 @@
         function setLongevity(id, text, zhi) {
             const element = document.getElementById(id);
             element.innerHTML = `<span style="color: ${WUXING_COLORS[zhi]}">${text}</span>`;
+        }
+
+        // 新增的干支着色函数
+        function setGanzhiColor(elementId, ganzhi) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = Array.from(ganzhi).map(c => 
+                `<span style="color: ${WUXING_COLORS[c]}">${c}</span>`
+            ).join('');
         }
 
         // ================== 事件监听 ==================
