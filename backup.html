@@ -155,19 +155,29 @@
         // ================== 核心算法 ==================
         function getKeInfo(date) {
             const lunar = Lunar.fromDate(date);
-            const timeZhi = lunar.getTimeZhi(); // 当前时辰地支
-            
-            // 各时辰的刻序列（每个时辰12刻，子-亥）
+            const shiZhi = lunar.getTimeZhi();
+
+            const zhiStartHourMap = {
+                '子':23, '丑':1, '寅':3, '卯':5, '辰':7, '巳':9,
+                '午':11, '未':13, '申':15, '酉':17, '戌':19, '亥':21
+            };
+            const startHour = zhiStartHourMap[shiZhi];
+
+            const startDate = new Date(date);
+            if (date.getHours() >= startHour) {
+                startDate.setHours(startHour, 0, 0, 0);
+            } else {
+                startDate.setDate(startDate.getDate() - 1);
+                startDate.setHours(startHour, 0, 0, 0);
+            }
+
+            const diffMs = date - startDate;
+            const totalMinutes = Math.floor(diffMs / 1000 / 60);
+            let keIndex = Math.floor(totalMinutes / 10);
+            if (keIndex < 0) keIndex = 0;
+            if (keIndex > 11) keIndex = 11;
+
             const keSequence = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
-            
-            // 计算当前时间在时辰内的位置
-            const minutes = date.getMinutes();
-            const seconds = date.getSeconds();
-            const totalSeconds = minutes * 60 + seconds;
-            
-            // 计算刻序（0-11）
-            const keIndex = Math.floor(totalSeconds / 600); // 每600秒一个刻
-            
             return {
                 keZhi: keSequence[keIndex],
                 keIndex: keIndex
