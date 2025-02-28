@@ -210,3 +210,7 @@ function queryTaoHua(diZhi) {
     };
     return taoHuaMap[diZhi] || '无桃花';
 }
+// 暴露接口
+window.ShenSha = {
+    queryAll: queryAllShensha
+};

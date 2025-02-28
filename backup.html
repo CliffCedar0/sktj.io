@@ -25,6 +25,7 @@
         }
         button { width: 100%; font-size: 18px; }
     </style>
+    <script src="shensha.js"></script>
 </head>
 <body>
     <div class="container text-center">
@@ -43,7 +44,6 @@
         </div>
 
         <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
-
         <table id="full-ganzhi" class="table table-bordered mt-3 d-none">
             <tr>
                 <td class="table-primary">年柱</td>
@@ -58,7 +58,6 @@
                 <td id="hour-ganzhi" style="width: 25%"></td>
             </tr>
         </table>
-
         <table id="zodiac-table" class="table table-bordered mt-3 d-none">
             <tr><td></td><td class="table-primary">时柱</td><td class="table-primary">刻柱</td></tr>
             <tr><td class="table-primary">十神</td><td>我</td><td id="shishen"></td></tr>
@@ -67,6 +66,14 @@
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
             <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
+        </table>
+        <table id="shensha-table" class="table table-bordered mt-3 d-none shensha-table">
+            <tr>
+                <td class="shensha-label">神煞类型</td>
+                <td class="shensha-label">时柱</td>
+                <td class="shensha-label">刻柱</td>
+            </tr>
+            <!-- 动态生成的神煞行 -->
         </table>
     </div>
 
@@ -213,6 +220,41 @@
             return gans[(starters[shiGan] + keIndex) % 10];
         }
 
+        // ================== 神煞查询接口 ==================
+        function queryAllShensha(gan, zhi) {
+            return {
+                '禄神': queryLuShen(gan),
+                '驿马': queryYiMa(zhi),
+                '贵人': queryTianYiGuiRen(gan),
+                '羊刃': queryYangRen(gan),
+                '飞刃': queryFeiRen(gan, zhi),
+                '血刃': queryXueRen(zhi),
+                '丧门': querySangMen(zhi),
+                '吊客': queryDiaoKe(zhi),
+                '孤辰寡宿': queryGuChenGuaXiu(zhi),
+                '桃花': queryTaoHua(zhi)
+            };
+        }
+
+        // ================== 表格动态生成 ==================
+        function createShenshaTable() {
+            const shenshaList = [
+                '禄神', '驿马', '贵人', '羊刃', 
+                '飞刃', '血刃', '丧门', '吊客', 
+                '孤辰寡宿', '桃花'
+            ];
+            
+            const table = document.getElementById('shensha-table');
+            shenshaList.forEach(name => {
+                const row = table.insertRow();
+                row.innerHTML = `
+                    <td class="shensha-label">${name}</td>
+                    <td id="${name}-hour"></td>
+                    <td id="${name}-ke"></td>
+                `;
+            });
+        }
+
         // ================== 主逻辑 ==================
         function calculate() {
             const date = getSelectedDate();
@@ -233,6 +275,14 @@
             // 计算十二长生
             const shengxiaoHour = getLongevity(shiGan, shiZhi);
             const shengxiaoKe = getLongevity(keGan, keZhi);
+
+            // 新增神煞处理
+            const hourShensha = queryAllShensha(shiGan, shiZhi);
+            const keShensha = queryAllShensha(keGan, keZhi);
+
+            // 更新神煞显示
+            updateShenshaDisplay(hourShensha, keShensha);
+            document.getElementById('shensha-table').classList.remove('d-none');
 
             // 更新界面
             updateDisplay({
@@ -331,6 +381,29 @@
         document.getElementById('custom-time').addEventListener('change', () => {
             document.getElementById('custom-time-input').classList.toggle('d-none');
         });
+
+
+        function updateShenshaDisplay(hourData, keData) {
+            const shenshaTypes = Object.keys(hourData);
+            shenshaTypes.forEach(type => {
+                setStyledCell(`${type}-hour`, hourData[type]);
+                setStyledCell(`${type}-ke`, keData[type]);
+            });
+        }
+
+        function setStyledCell(id, value) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            
+            element.innerHTML = value.split(/[、,]/).map(c => {
+                const color = WUXING_COLORS[c] || '#666';
+                return `<span style="color: ${color}">${c}</span>`;
+            }).join('、');
+        }
+
+        // 初始化时创建表格
+        createShenshaTable();
+
     </script>
 </body>
 </html>
