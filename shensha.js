@@ -176,22 +176,41 @@ function queryDiaoKe(diZhi) {
 }
 
 // 孤辰寡宿查询
-function queryGuChenGuaXiu(diZhi) {
-    const guChenGuaXiuMap = {
-        '寅': '巳',
-        '卯': '午',
-        '辰': '未',
-        '巳': '申',
-        '午': '酉',
-        '未': '戌',
-        '申': '亥',
-        '酉': '子',
-        '戌': '寅',
-        '亥': '卯',
-        '子': '巳',
-        '丑': '午'
+// function queryGuChenGuaXiu(diZhi) {
+//     const guChenGuaXiuMap = {
+//         '寅': '巳',
+//         '卯': '午',
+//         '辰': '未',
+//         '巳': '申',
+//         '午': '酉',
+//         '未': '戌',
+//         '申': '亥',
+//         '酉': '子',
+//         '戌': '寅',
+//         '亥': '卯',
+//         '子': '巳',
+//         '丑': '午'
+//     };
+//     return guChenGuaXiuMap[diZhi] || '无孤辰寡宿';
+// }
+function queryGuChen(diZhi) {
+    const guChenMap = {
+        '亥': '寅', '子': '寅', '丑': '寅',
+        '寅': '巳', '卯': '巳', '辰': '巳',
+        '巳': '申', '午': '申', '未': '申',
+        '申': '亥', '酉': '亥', '戌': '亥'
     };
-    return guChenGuaXiuMap[diZhi] || '无孤辰寡宿';
+    return guChenMap[diZhi] || '无';
+}
+
+function queryGuaXiu(diZhi) {
+    const guaXiuMap = {
+        '亥': '戌', '子': '戌', '丑': '戌',
+        '寅': '丑', '卯': '丑', '辰': '丑',
+        '巳': '辰', '午': '辰', '未': '辰',
+        '申': '未', '酉': '未', '戌': '未'
+    };
+    return guaXiuMap[diZhi] || '无';
 }
 
 // 桃花查询

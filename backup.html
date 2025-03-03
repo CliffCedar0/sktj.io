@@ -231,7 +231,8 @@
                 '血刃': queryXueRen(zhi),
                 '丧门': querySangMen(zhi),
                 '吊客': queryDiaoKe(zhi),
-                '孤辰寡宿': queryGuChenGuaXiu(zhi),
+                '孤辰': queryGuChen(zhi),
+                '寡宿': queryGuaXiu(zhi),
                 '桃花': queryTaoHua(zhi)
             };
         }
@@ -241,7 +242,7 @@
             const shenshaList = [
                 '禄神', '驿马', '贵人', '羊刃', 
                 '飞刃', '血刃', '丧门', '吊客', 
-                '孤辰寡宿', '桃花'
+                '孤辰', '寡宿', '桃花'
             ];
             
             const table = document.getElementById('shensha-table');
@@ -384,10 +385,18 @@
 
 
         function updateShenshaDisplay(hourData, keData) {
-            const shenshaTypes = Object.keys(hourData);
-            shenshaTypes.forEach(type => {
-                setStyledCell(`${type}-hour`, hourData[type]);
-                setStyledCell(`${type}-ke`, keData[type]);
+            const shenshaList = [
+                '禄神', '驿马', '贵人', '羊刃', 
+                '飞刃', '血刃', '丧门', '吊客', 
+                '孤辰', '寡宿', '桃花'
+            ];
+
+            shenshaList.forEach(type => {
+                const hourValue = hourData[type] || '';
+                const keValue = keData[type] || '';
+
+                setStyledCell(`${type}-hour`, hourValue);
+                setStyledCell(`${type}-ke`, keValue);
             });
         }
 
@@ -395,7 +404,7 @@
             const element = document.getElementById(id);
             if (!element) return;
             
-            element.innerHTML = value.split(/[、,]/).map(c => {
+            element.innerHTML = String(value).split(/[、,]/).map(c => {
                 const color = WUXING_COLORS[c] || '#666';
                 return `<span style="color: ${color}">${c}</span>`;
             }).join('、');
