@@ -59,8 +59,8 @@
             </tr>
         </table>
         <table id="zodiac-table" class="table table-bordered mt-3 d-none">
-            <tr><td></td><td class="table-primary">时柱</td><td class="table-primary">刻柱</td></tr>
-            <tr><td class="table-primary">十神</td><td>我</td><td id="shishen"></td></tr>
+            <tr><td class="table-primary"></td><td class="table-primary">时柱</td><td class="table-primary">刻柱</td></tr>
+            <tr><td class="table-primary">十神</td><td id="self-label">我</td><td id="shishen"></td></tr>
             <tr><td class="table-primary">天干</td><td id="hour-gan"></td><td id="ke-gan"></td></tr>
             <tr><td class="table-primary">地支</td><td id="hour-zhi"></td><td id="ke-zhi"></td></tr>
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
@@ -69,9 +69,9 @@
         </table>
         <table id="shensha-table" class="table table-bordered mt-3 d-none shensha-table">
             <tr>
-                <td class="shensha-label">神煞类型</td>
-                <td class="shensha-label">时柱</td>
-                <td class="shensha-label">刻柱</td>
+                <td class="shensha-label table-primary">神煞类型</td>
+                <td class="shensha-label table-primary">时柱</td>
+                <td class="shensha-label table-primary">刻柱</td>
             </tr>
             <!-- 动态生成的神煞行 -->
         </table>
@@ -249,7 +249,7 @@
             shenshaList.forEach(name => {
                 const row = table.insertRow();
                 row.innerHTML = `
-                    <td class="shensha-label">${name}</td>
+                    <td class="shensha-label table-primary">${name}</td>
                     <td id="${name}-hour"></td>
                     <td id="${name}-ke"></td>
                 `;
@@ -337,12 +337,20 @@
             // 其他数据
             setNaYinColor('nayin-hour', data.nayinHour);
             setNaYinColor('nayin-ke', data.nayinKe);
-            setCell('shishen', data.shishen);
+            setShishenColor('shishen', data.shishen, data.keGan);
+            setShishenColor('self-label', '我', data.shiGan);
             setStyledTougan('tougan-hour', data.touganHour);
             setStyledTougan('tougan-ke', data.touganKe);
             
             document.getElementById('zodiac-table').classList.remove('d-none');
             document.getElementById('full-ganzhi').classList.remove('d-none');
+        }
+
+        function setShishenColor(id, text, gan) {
+            const element = document.getElementById(id);
+            const color = WUXING_COLORS[gan] || '#000';
+
+            element.innerHTML = `<span style="color: ${color}">${text}</span>`;
         }
 
         function setCell(id, text) {
