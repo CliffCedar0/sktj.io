@@ -2,77 +2,95 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>禄神、驿马星、天乙贵人、羊刃、飞刃、血刃、丧门、吊客、孤辰寡宿与桃花查询</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>时刻天机</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
+        body { background-color: #f8f9fa; }
+        .container { 
+            max-width: 800px;
+            margin-top: 50px;
+            background: white;
             padding: 20px;
-            background-color: #f4f4f4;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
         }
-        h1 {
-            text-align: center;
-        }
-        .container {
-            width: 100%;
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            width: 100%;
+        table { width: 100%; margin-top: 15px; }
+        td, th {
             padding: 10px;
-            background-color: #007bff;
-            color: white;
-            font-size: 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .result {
-            margin-top: 20px;
-            font-size: 18px;
+            border: 1px solid #dee2e6;
             text-align: center;
+            font-size: 16px;
             font-weight: bold;
         }
+        button { width: 100%; font-size: 18px; }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <h1>禄神、驿马星、天乙贵人、羊刃、飞刃、血刃、丧门、吊客、孤辰寡宿与桃花查询</h1>
-        <div class="input-group">
-            <label for="tianGanZhi">请输入天干地支（如：甲寅、乙卯等）：</label>
-            <input type="text" id="tianGanZhi" placeholder="如：甲寅、乙卯、丙午...">
-        </div>
-        <button onclick="queryResults()">查询所有信息</button>
-        <div class="result" id="result"></div>
+    <div class="container text-center">
+        <h2 class="mb-3">时刻天机</h2>
+        <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
+        
+        <table id="tiangan-shensha-table" class="table table-bordered mt-3 d-none">
+            <thead>
+                <tr><th class="table-primary">天干</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        
+        <table id="dizhi-shensha-table" class="table table-bordered mt-3 d-none">
+            <thead>
+                <tr><th class="table-primary">地支</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
-
-    <!-- 引入外部 JS 文件 -->
-    <script src="shensha.js"></script>
-
+    
+    <script>
+        const tianganShensha = {
+            "贵人": { "甲": "丑、未", "乙": "子、申", "丙": "亥、酉", "丁": "亥、酉", "戊": "丑、未", "己": "子、申", "庚": "丑、未", "辛": "寅、午", "壬": "卯、巳", "癸": "卯、巳" },
+            "沐浴": { "甲": "亥", "乙": "戌", "丙": "酉", "丁": "申", "戊": "未", "己": "午", "庚": "巳", "辛": "辰", "壬": "卯", "癸": "寅" },
+            "干禄": { "甲": "寅", "乙": "卯", "丙": "巳", "丁": "午", "戊": "巳", "己": "午", "庚": "酉", "辛": "戌", "壬": "亥", "癸": "子" },
+            "羊刃": { "甲": "卯", "乙": "寅", "丙": "午", "丁": "巳", "戊": "午", "己": "巳", "庚": "酉", "辛": "申", "壬": "子", "癸": "亥" },
+            "红艳": { "甲": "午", "乙": "未", "丙": "申", "丁": "酉", "戊": "辰", "己": "巳", "庚": "子", "辛": "丑", "壬": "寅", "癸": "卯" },
+            "金舆": { "甲": "辰", "乙": "未", "丙": "未", "丁": "未", "戊": "辰", "己": "辰", "庚": "未", "辛": "未", "壬": "戌", "癸": "戌" }
+        };
+        
+        const dizhiShensha = {
+        "驿马": { "子": "寅", "丑": "卯", "寅": "申", "卯": "巳", "辰": "寅", "巳": "亥", "午": "申", "未": "巳", "申": "寅", "酉": "亥", "戌": "申", "亥": "巳" },
+        "华盖": { "子": "辰", "丑": "丑", "寅": "戌", "卯": "未", "辰": "辰", "巳": "丑", "午": "戌", "未": "未", "申": "辰", "酉": "丑", "戌": "戌", "亥": "未" },
+        "桃花": { "子": "酉", "丑": "午", "寅": "卯", "卯": "子", "辰": "酉", "巳": "午", "午": "卯", "未": "子", "申": "酉", "酉": "午", "戌": "卯", "亥": "子" },
+        "劫煞": { "子": "巳", "丑": "寅", "寅": "亥", "卯": "申", "辰": "巳", "巳": "寅", "午": "巳", "未": "亥", "申": "巳", "酉": "寅", "戌": "亥", "亥": "申" },
+        "红鸾": { "子": "卯", "丑": "寅", "寅": "丑", "卯": "子", "辰": "亥", "巳": "戌", "午": "酉", "未": "申", "申": "未", "酉": "午", "戌": "巳", "亥": "辰" },
+        "天喜": { "子": "酉", "丑": "申", "寅": "未", "卯": "午", "辰": "巳", "巳": "辰", "午": "卯", "未": "寅", "申": "丑", "酉": "子", "戌": "亥", "亥": "戌" },
+        "孤辰": { "子": "寅", "丑": "寅", "寅": "巳", "卯": "巳", "辰": "巳", "巳": "申", "午": "申", "未": "申", "申": "亥", "酉": "亥", "戌": "亥", "亥": "寅" },
+        "寡宿": { "子": "戌", "丑": "戌", "寅": "丑", "卯": "丑", "辰": "丑", "巳": "辰", "午": "辰", "未": "辰", "申": "未", "酉": "未", "戌": "未", "亥": "戌" },
+        "将星": { "子": "子", "丑": "酉", "寅": "午", "卯": "卯", "辰": "子", "巳": "酉", "午": "午", "未": "卯", "申": "子", "酉": "酉", "戌": "午", "亥": "卯" }
+        };
+        
+        function calculate() {
+            updateShenshaTable("tiangan-shensha-table", tianganShensha);
+            updateShenshaTable("dizhi-shensha-table", dizhiShensha);
+        }
+        
+        function updateShenshaTable(tableId, shenshaData) {
+            const table = document.getElementById(tableId);
+            const tbody = table.querySelector("tbody");
+            tbody.innerHTML = "";
+            
+            const headers = Object.keys(shenshaData[Object.keys(shenshaData)[0]]);
+            const headerRow = document.createElement("tr");
+            headerRow.innerHTML = `<th class="table-primary">类别</th>` + headers.map(h => `<th class="table-primary">${h}</th>`).join("");
+            tbody.appendChild(headerRow);
+            
+            Object.entries(shenshaData).forEach(([type, values]) => {
+                const row = document.createElement("tr");
+                row.innerHTML = `<td class="table-primary">${type}</td>` + headers.map(h => `<td>${values[h] || ""}</td>`).join("");
+                tbody.appendChild(row);
+            });
+            
+            table.classList.remove("d-none");
+        }
+    </script>
 </body>
 </html>

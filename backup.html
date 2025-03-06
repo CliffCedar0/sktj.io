@@ -67,16 +67,27 @@
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
             <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
         </table>
-        <table id="shensha-table" class="table table-bordered mt-3 d-none shensha-table">
+        <table id="tiangan-shensha-table" class="table table-bordered mt-3 d-none">
             <tr>
-                <td class="shensha-label table-primary">神煞类型</td>
-                <td class="shensha-label table-primary">时柱</td>
-                <td class="shensha-label table-primary">刻柱</td>
+                <td class="shensha-label table-primary">神煞</td>
+                <td class="shensha-label table-primary">时干</td>
+                <td class="shensha-label table-primary">刻干</td>
             </tr>
-            <!-- 动态生成的神煞行 -->
+        </table>
+        
+        <table id="dizhi-shensha-table" class="table table-bordered mt-3 d-none">
+            <tr>
+                <td class="shensha-label table-primary">神煞</td>
+                <td class="shensha-label table-primary">时支</td>
+                <td class="shensha-label table-primary">刻支</td>
+            </tr>
         </table>
     </div>
-
+    <div class="container text-center">
+        <p class="mt-4 text-muted">
+            © 术数开发者：贺兰 | 软件开发者：一只胖达
+        </p>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.min.js"></script>
 
@@ -174,6 +185,26 @@
             '火': '#ce2d20',
             '土': '#98511e'
         };
+        const tianganShensha = {
+            "贵人": { "甲": "丑、未", "乙": "子、申", "丙": "亥、酉", "丁": "亥、酉", "戊": "丑、未", "己": "子、申", "庚": "丑、未", "辛": "寅、午", "壬": "卯、巳", "癸": "卯、巳" },
+            "沐浴": { "甲": "亥", "乙": "戌", "丙": "酉", "丁": "申", "戊": "未", "己": "午", "庚": "巳", "辛": "辰", "壬": "卯", "癸": "寅" },
+            "干禄": { "甲": "寅", "乙": "卯", "丙": "巳", "丁": "午", "戊": "巳", "己": "午", "庚": "酉", "辛": "戌", "壬": "亥", "癸": "子" },
+            "羊刃": { "甲": "卯", "乙": "寅", "丙": "午", "丁": "巳", "戊": "午", "己": "巳", "庚": "酉", "辛": "申", "壬": "子", "癸": "亥" },
+            "红艳": { "甲": "午", "乙": "未", "丙": "申", "丁": "酉", "戊": "辰", "己": "巳", "庚": "子", "辛": "丑", "壬": "寅", "癸": "卯" },
+            "金舆": { "甲": "辰", "乙": "未", "丙": "未", "丁": "未", "戊": "辰", "己": "辰", "庚": "未", "辛": "未", "壬": "戌", "癸": "戌" }
+        };
+        
+        const dizhiShensha = {
+        "驿马": { "子": "寅", "丑": "卯", "寅": "申", "卯": "巳", "辰": "寅", "巳": "亥", "午": "申", "未": "巳", "申": "寅", "酉": "亥", "戌": "申", "亥": "巳" },
+        "华盖": { "子": "辰", "丑": "丑", "寅": "戌", "卯": "未", "辰": "辰", "巳": "丑", "午": "戌", "未": "未", "申": "辰", "酉": "丑", "戌": "戌", "亥": "未" },
+        "桃花": { "子": "酉", "丑": "午", "寅": "卯", "卯": "子", "辰": "酉", "巳": "午", "午": "卯", "未": "子", "申": "酉", "酉": "午", "戌": "卯", "亥": "子" },
+        "劫煞": { "子": "巳", "丑": "寅", "寅": "亥", "卯": "申", "辰": "巳", "巳": "寅", "午": "巳", "未": "亥", "申": "巳", "酉": "寅", "戌": "亥", "亥": "申" },
+        "红鸾": { "子": "卯", "丑": "寅", "寅": "丑", "卯": "子", "辰": "亥", "巳": "戌", "午": "酉", "未": "申", "申": "未", "酉": "午", "戌": "巳", "亥": "辰" },
+        "天喜": { "子": "酉", "丑": "申", "寅": "未", "卯": "午", "辰": "巳", "巳": "辰", "午": "卯", "未": "寅", "申": "丑", "酉": "子", "戌": "亥", "亥": "戌" },
+        "孤辰": { "子": "寅", "丑": "寅", "寅": "巳", "卯": "巳", "辰": "巳", "巳": "申", "午": "申", "未": "申", "申": "亥", "酉": "亥", "戌": "亥", "亥": "寅" },
+        "寡宿": { "子": "戌", "丑": "戌", "寅": "丑", "卯": "丑", "辰": "丑", "巳": "辰", "午": "辰", "未": "辰", "申": "未", "酉": "未", "戌": "未", "亥": "戌" },
+        "将星": { "子": "子", "丑": "酉", "寅": "午", "卯": "卯", "辰": "子", "巳": "酉", "午": "午", "未": "卯", "申": "子", "酉": "酉", "戌": "午", "亥": "卯" }
+        };
 
         // ================== 核心算法 ==================
         function getKeInfo(date) {
@@ -220,42 +251,6 @@
             return gans[(starters[shiGan] + keIndex) % 10];
         }
 
-        // ================== 神煞查询接口 ==================
-        function queryAllShensha(gan, zhi) {
-            return {
-                '禄神': queryLuShen(gan),
-                '驿马': queryYiMa(zhi),
-                '贵人': queryTianYiGuiRen(gan),
-                '羊刃': queryYangRen(gan),
-                '飞刃': queryFeiRen(gan, zhi),
-                '血刃': queryXueRen(zhi),
-                '丧门': querySangMen(zhi),
-                '吊客': queryDiaoKe(zhi),
-                '孤辰': queryGuChen(zhi),
-                '寡宿': queryGuaXiu(zhi),
-                '桃花': queryTaoHua(zhi)
-            };
-        }
-
-        // ================== 表格动态生成 ==================
-        function createShenshaTable() {
-            const shenshaList = [
-                '禄神', '驿马', '贵人', '羊刃', 
-                '飞刃', '血刃', '丧门', '吊客', 
-                '孤辰', '寡宿', '桃花'
-            ];
-            
-            const table = document.getElementById('shensha-table');
-            shenshaList.forEach(name => {
-                const row = table.insertRow();
-                row.innerHTML = `
-                    <td class="shensha-label table-primary">${name}</td>
-                    <td id="${name}-hour"></td>
-                    <td id="${name}-ke"></td>
-                `;
-            });
-        }
-
         // ================== 主逻辑 ==================
         function calculate() {
             const date = getSelectedDate();
@@ -277,13 +272,11 @@
             const shengxiaoHour = getLongevity(shiGan, shiZhi);
             const shengxiaoKe = getLongevity(keGan, keZhi);
 
-            // 新增神煞处理
-            const hourShensha = queryAllShensha(shiGan, shiZhi);
-            const keShensha = queryAllShensha(keGan, keZhi);
 
             // 更新神煞显示
-            updateShenshaDisplay(hourShensha, keShensha);
-            document.getElementById('shensha-table').classList.remove('d-none');
+            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            document.getElementById('tiangan-shensha-table').classList.remove('d-none');
+            document.getElementById('dizhi-shensha-table').classList.remove('d-none');
 
             // 更新界面
             updateDisplay({
@@ -390,22 +383,60 @@
         document.getElementById('custom-time').addEventListener('change', () => {
             document.getElementById('custom-time-input').classList.toggle('d-none');
         });
+        function ensureTableExists(tableId, title) {
+            let table = document.getElementById(tableId);
+            if (!table) {
+                table = document.createElement('table');
+                table.id = tableId;
+                table.className = 'table table-bordered mt-3';
+                document.body.appendChild(table);
+            }
+            table.innerHTML = `
+                <tr>
+                    <td class="shensha-label table-primary">${title}</td>
+                    <td class="shensha-label table-primary">时柱</td>
+                    <td class="shensha-label table-primary">刻柱</td>
+                </tr>`;
+            return table;
+        }
 
+        function updateShenshaDisplay(hourGan, hourZhi, keGan, keZhi) {
+            const tianganTable = ensureTableExists('tiangan-shensha-table', '天干神煞');
+            const dizhiTable = ensureTableExists('dizhi-shensha-table', '地支神煞');
 
-        function updateShenshaDisplay(hourData, keData) {
-            const shenshaList = [
-                '禄神', '驿马', '贵人', '羊刃', 
-                '飞刃', '血刃', '丧门', '吊客', 
-                '孤辰', '寡宿', '桃花'
-            ];
+            const tianganShenshaList = ['贵人', '沐浴', '干禄', '羊刃', '红艳', '金舆'];
+            const dizhiShenshaList = ['驿马', '华盖', '桃花', '劫煞', '红鸾', '天喜', '孤辰', '寡宿', '将星'];
 
-            shenshaList.forEach(type => {
-                const hourValue = hourData[type] || '';
-                const keValue = keData[type] || '';
-
-                setStyledCell(`${type}-hour`, hourValue);
-                setStyledCell(`${type}-ke`, keValue);
+            tianganShenshaList.forEach(type => {
+                const hourValue = colorizeShensha(tianganShensha[type]?.[hourGan] || '');
+                const keValue = colorizeShensha(tianganShensha[type]?.[keGan] || '');
+                appendShenshaRow(tianganTable, type, hourValue, keValue);
             });
+
+            dizhiShenshaList.forEach(type => {
+                const hourValue = colorizeShensha(dizhiShensha[type]?.[hourZhi] || '');
+                const keValue = colorizeShensha(dizhiShensha[type]?.[keZhi] || '');
+                appendShenshaRow(dizhiTable, type, hourValue, keValue);
+            });
+
+            tianganTable.classList.remove('d-none');
+            dizhiTable.classList.remove('d-none');
+        }
+
+        function appendShenshaRow(table, type, hourValue, keValue) {
+            const row = table.insertRow();
+            row.innerHTML = `
+                <td class="shensha-label table-primary">${type}</td>
+                <td>${hourValue}</td>
+                <td>${keValue}</td>`;
+        }
+
+        function colorizeShensha(text) {
+            if (!text) return '';
+            return text.split(/[、,]/).map(c => {
+                const color = WUXING_COLORS[c] || '#000';
+                return `<span style="color: ${color}">${c}</span>`;
+            }).join('、');
         }
 
         function setStyledCell(id, value) {
