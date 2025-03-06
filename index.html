@@ -66,6 +66,7 @@
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
             <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
+            
         </table>
         <table id="tiangan-shensha-table" class="table table-bordered mt-3 d-none">
             <tr>
@@ -405,8 +406,8 @@
         }
 
         function updateShenshaDisplay(hourGan, hourZhi, keGan, keZhi) {
-            const tianganTable = ensureTableExists('tiangan-shensha-table', '神煞', '天干', hourGan, keGan);
-            const dizhiTable = ensureTableExists('dizhi-shensha-table', '神煞', '地支', hourZhi, keZhi);
+            const tianganTable = ensureTableExists('tiangan-shensha-table', '天干神煞', '天干', hourGan, keGan);
+            const dizhiTable = ensureTableExists('dizhi-shensha-table', '地支神煞', '地支', hourZhi, keZhi);
 
             const tianganShenshaList = ['贵人', '沐浴', '干禄', '羊刃', '红艳', '金舆'];
             const dizhiShenshaList = ['驿马', '华盖', '桃花', '劫煞', '红鸾', '天喜', '孤辰', '寡宿', '将星'];
