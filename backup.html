@@ -69,12 +69,20 @@
             <tr></tr>
             
         </table>
-        <table id="tiangan-shensha-table" class="table table-bordered mt-3 d-none"></table>     
-        <table id="dizhi-shensha-table" class="table table-bordered mt-3 d-none"></table>
+        <table id="shensha-table" class="table table-bordered mt-3 d-none">
+            <tr>
+                <td class="table-primary text-center" colspan="3">天干神煞</td>
+            </tr>
+            <tbody id="tiangan-shensha-body"></tbody>
+            <tr>
+                <td class="table-primary text-center" colspan="3">地支神煞</td>
+            </tr>
+            <tbody id="dizhi-shensha-body"></tbody>
+        </table>
     </div>
     <div class="container text-center">
         <p class="mt-4 text-muted">
-            © 术数开发者：贺兰 | 软件开发者：一只胖达
+            © 术数开发者：贺兰 | 软件开发者：白崖BaiCliff
         </p>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -262,10 +270,7 @@
             const shengxiaoKe = getLongevity(keGan, keZhi);
 
 
-            // 更新神煞显示
-            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
-            document.getElementById('tiangan-shensha-table').classList.remove('d-none');
-            document.getElementById('dizhi-shensha-table').classList.remove('d-none');
+            
 
             // 更新界面
             updateDisplay({
@@ -285,6 +290,10 @@
                 touganHour: TOUGAN_MAP[shiZhi] || [],
                 touganKe: TOUGAN_MAP[keZhi] || []
             });
+            // 更新神煞显示
+            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            document.getElementById('tiangan-shensha-table').classList.remove('d-none');
+            document.getElementById('dizhi-shensha-table').classList.remove('d-none');
         }
 
         // ================== 工具函数 ==================
@@ -394,26 +403,51 @@
         }
 
         function updateShenshaDisplay(hourGan, hourZhi, keGan, keZhi) {
-            const tianganTable = ensureTableExists('tiangan-shensha-table', '天干神煞', '天干', hourGan, keGan);
-            const dizhiTable = ensureTableExists('dizhi-shensha-table', '地支神煞', '地支', hourZhi, keZhi);
+            const shenshaTable = document.getElementById('shensha-table');
+            shenshaTable.innerHTML = `
+                <tbody>
+                    <tr>
+                        <td class="table-primary">天干神煞</td>
+                        <td class="table-primary" style="color: ${WUXING_COLORS[hourGan] || '#000'};">${hourGan}</td>
+                        <td class="table-primary" style="color: ${WUXING_COLORS[keGan] || '#000'};">${keGan}</td>
+                    </tr>
+                </tbody>
+            `;
+            const tbody = shenshaTable.querySelector('tbody');
 
-            const tianganShenshaList = ['贵人', '沐浴', '干禄', '羊刃', '红艳', '金舆'];
-            const dizhiShenshaList = ['驿马', '华盖', '桃花', '劫煞', '红鸾', '天喜', '孤辰', '寡宿', '将星'];
-
-            tianganShenshaList.forEach(type => {
+            // 天干神煞部分（顺序：贵人、干禄、羊刃、红艳、金舆）
+            const tianganTypes = ['贵人', '干禄', '羊刃', '红艳', '金舆'];
+            tianganTypes.forEach(type => {
+                const row = document.createElement('tr');
+                // 这里根据时柱取天干神煞信息，刻柱取天干神煞（也可根据需要调整规则）
                 const hourValue = colorizeShensha(tianganShensha[type]?.[hourGan] || '');
                 const keValue = colorizeShensha(tianganShensha[type]?.[keGan] || '');
-                appendShenshaRow(tianganTable, type, hourValue, keValue);
+                row.innerHTML = `<td class="table-primary">${type}</td><td>${hourValue || '—'}</td><td>${keValue || '—'}</td>`;
+                tbody.appendChild(row);
             });
 
-            dizhiShenshaList.forEach(type => {
+            // 插入地支神煞分隔行
+            const separator = document.createElement('tr');
+            separator.className = 'table-secondary';
+            tbody.appendChild(separator);
+
+            // 新增地支信息行
+            const dizhiHeader = document.createElement('tr');
+            dizhiHeader.innerHTML = `<td class="table-primary">地支神煞</td><td class="table-primary" style="color: ${WUXING_COLORS[hourZhi] || '#000'};">${hourZhi}</td><td class="table-primary" style="color: ${WUXING_COLORS[keZhi] || '#000'};">${keZhi}</td>`;
+            tbody.appendChild(dizhiHeader);
+
+            // 地支神煞部分（顺序：驿马、华盖、桃花、劫煞、红鸾、天喜、孤辰、寡宿、将星）
+            const dizhiTypes = ['驿马', '华盖', '桃花', '劫煞', '红鸾', '天喜', '孤辰', '寡宿', '将星'];
+            dizhiTypes.forEach(type => {
+                const row = document.createElement('tr');
+                // 地支神煞根据时柱和刻柱取对应信息
                 const hourValue = colorizeShensha(dizhiShensha[type]?.[hourZhi] || '');
                 const keValue = colorizeShensha(dizhiShensha[type]?.[keZhi] || '');
-                appendShenshaRow(dizhiTable, type, hourValue, keValue);
+                row.innerHTML = `<td class="table-primary">${type}</td><td>${hourValue || '—'}</td><td>${keValue || '—'}</td>`;
+                tbody.appendChild(row);
             });
 
-            tianganTable.classList.remove('d-none');
-            dizhiTable.classList.remove('d-none');
+            shenshaTable.classList.remove('d-none');
         }
 
         function appendShenshaRow(table, type, hourValue, keValue) {
@@ -443,7 +477,7 @@
         }
 
         // 初始化时创建表格
-        createShenshaTable();
+        // Removed call to undefined createShenshaTable();
 
     </script>
 </body>
