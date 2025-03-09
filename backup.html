@@ -66,8 +66,8 @@
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
             <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
-            <tr></tr>
-            
+            <tr><td class="table-primary">旬空</td><td id="xunkong-hour"></td><td id="xunkong-ke"></td></tr>
+                    
         </table>
         <table id="shensha-table" class="table table-bordered mt-3 d-none">
             <tr>
@@ -101,6 +101,24 @@
             '午': '#ce2d20', '未': '#98511e', '申': '#e08433',
             '酉': '#e08433', '戌': '#98511e', '亥': '#0803a8'
         };
+        
+        // 旬空计算逻辑
+        const xunKongMap = {};
+        const tianGan = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'];
+        const diZhi = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+        
+        for (let i = 0; i < 60; i++) {
+            const ganIndex = i % 10;
+            const zhiIndex = i % 12;
+            const ganZhi = tianGan[ganIndex] + diZhi[zhiIndex];
+            const xunIndex = Math.floor(i / 10);
+            const xunKongPairs = ['戌、亥', '申、酉', '午、未', '辰、巳', '寅、卯', '子、丑'];
+            xunKongMap[ganZhi] = xunKongPairs[xunIndex];
+        }
+        
+        function getXunKong(ganZhi) {
+            return xunKongMap[ganZhi] || '未知';
+        }
 
         const TWELVE_LONGEVITY = [
             '长生', '沐浴', '冠带', '临官', '帝旺', 
@@ -206,6 +224,17 @@
             "吊客": { "子": "戌", "丑": "亥", "寅": "子", "卯": "丑", "辰": "寅", "巳": "卯", "午": "辰", "未": "巳", "申": "午", "酉": "未", "戌": "申", "亥": "酉" }
         };
 
+        function setStyledCell(id, value) {
+            const element = document.getElementById(id);
+            if (!element) return;
+
+            element.innerHTML = value.split(/[、,]/).map(c => {
+                const color = WUXING_COLORS[c] || '#666';
+                return `<span style="color: ${color}">${c}</span>`;
+            }).join('、');
+        }
+
+
         // ================== 核心算法 ==================
         function getKeInfo(date) {
             const lunar = Lunar.fromDate(date);
@@ -267,7 +296,15 @@
             // 计算刻柱
             const { keZhi, keIndex } = getKeInfo(date);
             const keGan = getKeGan(shiGan, keIndex);
+            
+            // 计算旬空
+            const hourGanZhi = shiGan + shiZhi;
+            const keGanZhi = keGan + keZhi;
+            
+            const xunkongHour = getXunKong(hourGanZhi);
+            const xunkongKe = getXunKong(keGanZhi);
 
+            
             // 计算十二长生
             const shengxiaoHour = getLongevity(shiGan, shiZhi);
             const shengxiaoKe = getLongevity(keGan, keZhi);
@@ -291,7 +328,9 @@
                 nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
                 touganHour: TOUGAN_MAP[shiZhi] || [],
-                touganKe: TOUGAN_MAP[keZhi] || []
+                touganKe: TOUGAN_MAP[keZhi] || [],
+                xunkongHour,
+                xunkongKe
             });
             // 更新神煞显示
             updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
@@ -335,6 +374,10 @@
             setShishenColor('self-label', '我', data.shiGan);
             setStyledTougan('tougan-hour', data.touganHour);
             setStyledTougan('tougan-ke', data.touganKe);
+            
+            // 更新旬空数据
+            setStyledCell('xunkong-hour', data.xunkongHour);
+            setStyledCell('xunkong-ke', data.xunkongKe);
             
             document.getElementById('zodiac-table').classList.remove('d-none');
             document.getElementById('full-ganzhi').classList.remove('d-none');
@@ -479,6 +522,7 @@
             }).join('、');
         }
 
+        
         // 初始化时创建表格
         // Removed call to undefined createShenshaTable();
 
