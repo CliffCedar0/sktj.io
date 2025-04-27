@@ -65,21 +65,50 @@
 <body>
     <div class="container text-center">
         <h2 class="mb-3">时刻天机</h2>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="time-selection" id="current-time" checked>
-            <label class="form-check-label" for="current-time">当前时间</label>
+        <div class="row mb-2">
+            <div class="col-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time-selection" id="current-time" checked>
+                    <label class="form-check-label" for="current-time">当前时间</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time-selection" id="random-number">
+                    <label class="form-check-label" for="random-number">随机数起盘</label>
+                </div>
+            </div>
+            
         </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="time-selection" id="custom-time">
-            <label class="form-check-label" for="custom-time">自定义时间</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="time-selection" id="custom-ganzhi">
-            <label class="form-check-label" for="custom-ganzhi">自定义干支</label>
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time-selection" id="custom-time">
+                    <label class="form-check-label" for="custom-time">自定义时间</label>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="time-selection" id="custom-ganzhi">
+                    <label class="form-check-label" for="custom-ganzhi">自定义干支</label>
+                </div>
+            </div>
+            
         </div>
 
         <div id="custom-time-input" class="mt-3 d-none">
             <input type="datetime-local" id="custom-date" class="form-control">
+        </div>
+
+        <div id="random-number-input" class="mt-3 d-none">
+            <div class="row g-2">
+                <div class="col-8">
+                    <input type="number" id="random-number-value" class="form-control" min="1" max="12" placeholder="输入1-12的数字">
+                </div>
+                <div class="col-4">
+                    <button class="btn btn-primary w-100" onclick="generateRandomNumber()">随机生成</button>
+                </div>
+            </div>
         </div>
 
         <div id="custom-ganzhi-input" class="mt-3 d-none">
@@ -398,6 +427,11 @@
                 return;
             }
             
+            if (document.getElementById('random-number').checked) {
+                calculateFromRandomNumber();
+                return;
+            }
+            
             const date = getSelectedDate();
             const lunar = Lunar.fromDate(date);
             
@@ -487,6 +521,73 @@
                 monthGanzhi: '',
                 dayGanzhi: '',
                 hourGanzhi: shiGan + shiZhi,
+                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
+                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
+                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
+                touganHour: TOUGAN_MAP[shiZhi] || [],
+                touganKe: TOUGAN_MAP[keZhi] || [],
+                xunkongHour,
+                xunkongKe
+            });
+            
+            // 更新神煞显示
+            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            document.getElementById('shensha-table').classList.remove('d-none');
+        }
+
+        function calculateFromRandomNumber() {
+            // 获取随机数（1-12）
+            const randomNumInput = document.getElementById('random-number-value');
+            let randomNum = parseInt(randomNumInput.value);
+            
+            // 验证输入是否在1-12范围内
+            if (isNaN(randomNum) || randomNum < 1 || randomNum > 12) {
+                alert('请输入1-12之间的数字');
+                return;
+            }
+            
+            // 获取当前时间（用于时柱信息）
+            const date = new Date();
+            const lunar = Lunar.fromDate(date);
+            
+            // 获取时柱信息
+            const timeGanZhi = lunar.getTimeInGanZhi();
+            const shiGan = timeGanZhi[0];
+            const shiZhi = timeGanZhi[1];
+            const yearGanzhi = lunar.getYearInGanZhi();
+            const monthGanzhi = lunar.getMonthInGanZhi();
+            const dayGanzhi = lunar.getDayInGanZhi();
+            
+            // 将1-12的数字映射到地支（子=1，丑=2，...，亥=12）
+            const keIndex = randomNum - 1;
+            const keZhi = diZhi[keIndex];
+            
+            // 根据时干和刻支索引计算刻干
+            const keGan = getKeGan(shiGan, keIndex);
+            
+            // 计算旬空
+            const hourGanZhi = shiGan + shiZhi;
+            const keGanZhi = keGan + keZhi;
+            
+            const xunkongHour = getXunKong(hourGanZhi);
+            const xunkongKe = getXunKong(keGanZhi);
+            
+            // 计算十二长生
+            const shengxiaoHour = getLongevity(shiGan, shiZhi);
+            const shengxiaoKe = getLongevity(keGan, keZhi);
+            
+            // 更新界面
+            updateDisplay({
+                shiGan, 
+                shiZhi,
+                keGan, 
+                keZhi,
+                shengxiaoHour,
+                shengxiaoKe,
+                yearGanzhi,
+                monthGanzhi,
+                dayGanzhi,
+                hourGanzhi: timeGanZhi,
                 nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
                 nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
@@ -594,17 +695,31 @@
         document.getElementById('custom-time').addEventListener('change', () => {
             document.getElementById('custom-time-input').classList.toggle('d-none', !document.getElementById('custom-time').checked);
             document.getElementById('custom-ganzhi-input').classList.add('d-none');
+            document.getElementById('random-number-input').classList.add('d-none');
         });
         
         document.getElementById('custom-ganzhi').addEventListener('change', () => {
             document.getElementById('custom-ganzhi-input').classList.toggle('d-none', !document.getElementById('custom-ganzhi').checked);
             document.getElementById('custom-time-input').classList.add('d-none');
+            document.getElementById('random-number-input').classList.add('d-none');
+        });
+
+        document.getElementById('random-number').addEventListener('change', () => {
+            document.getElementById('random-number-input').classList.toggle('d-none', !document.getElementById('random-number').checked);
+            document.getElementById('custom-time-input').classList.add('d-none');
+            document.getElementById('custom-ganzhi-input').classList.add('d-none');
         });
 
         document.getElementById('current-time').addEventListener('change', () => {
             document.getElementById('custom-time-input').classList.add('d-none');
             document.getElementById('custom-ganzhi-input').classList.add('d-none');
+            document.getElementById('random-number-input').classList.add('d-none');
         });
+
+        function generateRandomNumber() {
+            const randomInput = document.getElementById('random-number-value');
+            randomInput.value = Math.floor(Math.random() * 12) + 1;
+        }
 
         function ensureTableExists(tableId, title, columnTitle, hourValue, keValue) {
             let table = document.getElementById(tableId);
