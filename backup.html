@@ -24,6 +24,41 @@
             font-weight: bold;
         }
         button { width: 100%; font-size: 18px; }
+        
+        /* 自定义干支下拉菜单的样式 */
+        .form-select option[value="甲"], .form-select option[value="乙"] {
+            color: #317023; /* 木 */
+        }
+        .form-select option[value="丙"], .form-select option[value="丁"] {
+            color: #ce2d20; /* 火 */
+        }
+        .form-select option[value="戊"], .form-select option[value="己"] {
+            color: #98511e; /* 土 */
+        }
+        .form-select option[value="庚"], .form-select option[value="辛"] {
+            color: #e08433; /* 金 */
+        }
+        .form-select option[value="壬"], .form-select option[value="癸"] {
+            color: #0803a8; /* 水 */
+        }
+        
+        /* 地支的五行颜色 */
+        .form-select option[value="子"], .form-select option[value="亥"] {
+            color: #0803a8; /* 水 */
+        }
+        .form-select option[value="寅"], .form-select option[value="卯"] {
+            color: #317023; /* 木 */
+        }
+        .form-select option[value="巳"], .form-select option[value="午"] {
+            color: #ce2d20; /* 火 */
+        }
+        .form-select option[value="申"], .form-select option[value="酉"] {
+            color: #e08433; /* 金 */
+        }
+        .form-select option[value="丑"], .form-select option[value="辰"], 
+        .form-select option[value="未"], .form-select option[value="戌"] {
+            color: #98511e; /* 土 */
+        }
     </style>
     <script src="shensha.js"></script>
 </head>
@@ -38,9 +73,60 @@
             <input class="form-check-input" type="radio" name="time-selection" id="custom-time">
             <label class="form-check-label" for="custom-time">自定义时间</label>
         </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="time-selection" id="custom-ganzhi">
+            <label class="form-check-label" for="custom-ganzhi">自定义干支</label>
+        </div>
 
         <div id="custom-time-input" class="mt-3 d-none">
             <input type="datetime-local" id="custom-date" class="form-control">
+        </div>
+
+        <div id="custom-ganzhi-input" class="mt-3 d-none">
+            <div class="row g-2 mb-2">
+                <div class="col-3">
+                    <label class="form-label">时干</label>
+                    <select class="form-select" id="custom-hour-gan" onchange="updateZhiOptions('custom-hour-gan', 'custom-hour-zhi')">
+                        <option value="甲">甲</option>
+                        <option value="乙">乙</option>
+                        <option value="丙">丙</option>
+                        <option value="丁">丁</option>
+                        <option value="戊">戊</option>
+                        <option value="己">己</option>
+                        <option value="庚">庚</option>
+                        <option value="辛">辛</option>
+                        <option value="壬">壬</option>
+                        <option value="癸">癸</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">时支</label>
+                    <select class="form-select" id="custom-hour-zhi">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">刻干</label>
+                    <select class="form-select" id="custom-ke-gan" onchange="updateZhiOptions('custom-ke-gan', 'custom-ke-zhi')">
+                        <option value="甲">甲</option>
+                        <option value="乙">乙</option>
+                        <option value="丙">丙</option>
+                        <option value="丁">丁</option>
+                        <option value="戊">戊</option>
+                        <option value="己">己</option>
+                        <option value="庚">庚</option>
+                        <option value="辛">辛</option>
+                        <option value="壬">壬</option>
+                        <option value="癸">癸</option>
+                    </select>
+                </div>
+                <div class="col-3">
+                    <label class="form-label">刻支</label>
+                    <select class="form-select" id="custom-ke-zhi">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
         </div>
 
         <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
@@ -100,6 +186,30 @@
             '卯': '#317023', '辰': '#98511e', '巳': '#ce2d20',
             '午': '#ce2d20', '未': '#98511e', '申': '#e08433',
             '酉': '#e08433', '戌': '#98511e', '亥': '#0803a8'
+        };
+        
+        // 定义有效的六十甲子组合
+        const VALID_GANZHI_PAIRS = [
+            '甲子', '乙丑', '丙寅', '丁卯', '戊辰', '己巳', '庚午', '辛未', '壬申', '癸酉',
+            '甲戌', '乙亥', '丙子', '丁丑', '戊寅', '己卯', '庚辰', '辛巳', '壬午', '癸未',
+            '甲申', '乙酉', '丙戌', '丁亥', '戊子', '己丑', '庚寅', '辛卯', '壬辰', '癸巳',
+            '甲午', '乙未', '丙申', '丁酉', '戊戌', '己亥', '庚子', '辛丑', '壬寅', '癸卯',
+            '甲辰', '乙巳', '丙午', '丁未', '戊申', '己酉', '庚戌', '辛亥', '壬子', '癸丑',
+            '甲寅', '乙卯', '丙辰', '丁巳', '戊午', '己未', '庚申', '辛酉', '壬戌', '癸亥'
+        ];
+
+        // 天干对应的地支映射（仅用于六十甲子限制）
+        const GAN_TO_ZHI_MAP = {
+            '甲': ['子', '寅', '辰', '午', '申', '戌'],
+            '乙': ['丑', '卯', '巳', '未', '酉', '亥'],
+            '丙': ['寅', '辰', '午', '申', '戌', '子'],
+            '丁': ['卯', '巳', '未', '酉', '亥', '丑'],
+            '戊': ['辰', '午', '申', '戌', '子', '寅'],
+            '己': ['巳', '未', '酉', '亥', '丑', '卯'],
+            '庚': ['午', '申', '戌', '子', '寅', '辰'],
+            '辛': ['未', '酉', '亥', '丑', '卯', '巳'],
+            '壬': ['申', '戌', '子', '寅', '辰', '午'],
+            '癸': ['酉', '亥', '丑', '卯', '巳', '未']
         };
         
         // 旬空计算逻辑
@@ -203,8 +313,9 @@
         const tianganShensha = {
             "贵人": { "甲": "丑、未", "乙": "子、申", "丙": "亥、酉", "丁": "亥、酉", "戊": "丑、未", "己": "子、申", "庚": "丑、未", "辛": "寅、午", "壬": "卯、巳", "癸": "卯、巳" },
             "沐浴": { "甲": "亥", "乙": "亥", "丙": "卯", "丁": "卯", "戊": "酉", "己": "酉", "庚": "午", "辛": "午", "壬": "酉", "癸": "酉" },
-            "干禄": { "甲": "寅", "乙": "卯", "丙": "巳", "丁": "午", "戊": "巳", "己": "午", "庚": "酉", "辛": "戌", "壬": "亥", "癸": "子" },
-            "羊刃": { "甲": "卯", "乙": "寅", "丙": "午", "丁": "巳", "戊": "午", "己": "巳", "庚": "酉", "辛": "申", "壬": "子", "癸": "亥" },
+            "干禄": { "甲": "寅", "乙": "卯", "丙": "巳", "丁": "午", "戊": "巳", "己": "午", "庚": "申", "辛": "酉", "壬": "亥", "癸": "子" },
+            "羊刃": { "甲": "卯", "乙": "辰", "丙": "午", "丁": "未", "戊": "午", "己": "未", "庚": "酉", "辛": "戌", "壬": "子", "癸": "丑" },
+            "飞刃": { "甲": "酉", "乙": "戌", "丙": "子", "丁": "丑", "戊": "子", "己": "丑", "庚": "卯", "辛": "辰", "壬": "午", "癸": "未" },
             "红艳": { "甲": "午", "乙": "未", "丙": "申", "丁": "酉", "戊": "辰", "己": "巳", "庚": "子", "辛": "丑", "壬": "寅", "癸": "卯" },
             "金舆": { "甲": "辰", "乙": "未", "丙": "未", "丁": "未", "戊": "辰", "己": "辰", "庚": "未", "辛": "未", "壬": "戌", "癸": "戌" },
             "学堂": {"甲": "亥","乙": "亥","丙": "寅","丁": "寅","戊": "申","己": "申","庚": "巳","辛": "巳","壬": "申","癸": "申"}
@@ -282,6 +393,11 @@
 
         // ================== 主逻辑 ==================
         function calculate() {
+            if (document.getElementById('custom-ganzhi').checked) {
+                calculateFromCustomGanzhi();
+                return;
+            }
+            
             const date = getSelectedDate();
             const lunar = Lunar.fromDate(date);
             
@@ -338,6 +454,53 @@
             document.getElementById('dizhi-shensha-table').classList.remove('d-none');
         }
 
+        function calculateFromCustomGanzhi() {
+            // 从自定义干支输入获取值
+            const shiGan = document.getElementById('custom-hour-gan').value;
+            const shiZhi = document.getElementById('custom-hour-zhi').value;
+            const keGan = document.getElementById('custom-ke-gan').value;
+            const keZhi = document.getElementById('custom-ke-zhi').value;
+            
+            // 计算旬空
+            const hourGanZhi = shiGan + shiZhi;
+            const keGanZhi = keGan + keZhi;
+            
+            const xunkongHour = getXunKong(hourGanZhi);
+            const xunkongKe = getXunKong(keGanZhi);
+            
+            // 计算十二长生
+            const shengxiaoHour = getLongevity(shiGan, shiZhi);
+            const shengxiaoKe = getLongevity(keGan, keZhi);
+
+            // 自定义干支模式下不显示完整八字
+            document.getElementById('full-ganzhi').classList.add('d-none');
+
+            // 更新界面显示
+            updateDisplay({
+                shiGan, 
+                shiZhi,
+                keGan, 
+                keZhi,
+                shengxiaoHour,
+                shengxiaoKe,
+                yearGanzhi: '',
+                monthGanzhi: '',
+                dayGanzhi: '',
+                hourGanzhi: shiGan + shiZhi,
+                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
+                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
+                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
+                touganHour: TOUGAN_MAP[shiZhi] || [],
+                touganKe: TOUGAN_MAP[keZhi] || [],
+                xunkongHour,
+                xunkongKe
+            });
+            
+            // 更新神煞显示
+            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            document.getElementById('shensha-table').classList.remove('d-none');
+        }
+
         // ================== 工具函数 ==================
         function getSelectedDate() {
             if (document.getElementById('custom-time').checked) {
@@ -355,10 +518,15 @@
             setCell('hour-gan', data.shiGan);
             setCell('hour-zhi', data.shiZhi);
             
-            setGanzhiColor('year-ganzhi', data.yearGanzhi);
-            setGanzhiColor('month-ganzhi', data.monthGanzhi);
-            setGanzhiColor('day-ganzhi', data.dayGanzhi);
-            setGanzhiColor('hour-ganzhi', data.hourGanzhi);
+            // 只在非自定义干支模式下显示完整八字
+            if (!document.getElementById('custom-ganzhi').checked) {
+                setGanzhiColor('year-ganzhi', data.yearGanzhi);
+                setGanzhiColor('month-ganzhi', data.monthGanzhi);
+                setGanzhiColor('day-ganzhi', data.dayGanzhi);
+                setGanzhiColor('hour-ganzhi', data.hourGanzhi);
+                document.getElementById('full-ganzhi').classList.remove('d-none');
+            }
+            
             // 刻柱信息
             setCell('ke-gan', data.keGan);
             setCell('ke-zhi', data.keZhi);
@@ -380,7 +548,6 @@
             setStyledCell('xunkong-ke', data.xunkongKe);
             
             document.getElementById('zodiac-table').classList.remove('d-none');
-            document.getElementById('full-ganzhi').classList.remove('d-none');
         }
 
         function setShishenColor(id, text, gan) {
@@ -425,9 +592,20 @@
 
         // ================== 事件监听 ==================
         document.getElementById('custom-time').addEventListener('change', () => {
-            document.getElementById('custom-time-input').classList.toggle('d-none');
+            document.getElementById('custom-time-input').classList.toggle('d-none', !document.getElementById('custom-time').checked);
+            document.getElementById('custom-ganzhi-input').classList.add('d-none');
         });
         
+        document.getElementById('custom-ganzhi').addEventListener('change', () => {
+            document.getElementById('custom-ganzhi-input').classList.toggle('d-none', !document.getElementById('custom-ganzhi').checked);
+            document.getElementById('custom-time-input').classList.add('d-none');
+        });
+
+        document.getElementById('current-time').addEventListener('change', () => {
+            document.getElementById('custom-time-input').classList.add('d-none');
+            document.getElementById('custom-ganzhi-input').classList.add('d-none');
+        });
+
         function ensureTableExists(tableId, title, columnTitle, hourValue, keValue) {
             let table = document.getElementById(tableId);
             if (!table) {
@@ -462,7 +640,7 @@
             const tbody = shenshaTable.querySelector('tbody');
 
             // 天干神煞部分（顺序：贵人、干禄、羊刃、红艳、金舆）
-            const tianganTypes = ['贵人', '干禄', '羊刃', '红艳', '金舆','学堂'];
+            const tianganTypes = ['贵人', '干禄', '羊刃','飞刃', '红艳', '金舆','学堂'];
             tianganTypes.forEach(type => {
                 const row = document.createElement('tr');
                 // 这里根据时柱取天干神煞信息，刻柱取天干神煞（也可根据需要调整规则）
@@ -521,6 +699,32 @@
                 return `<span style="color: ${color}">${c}</span>`;
             }).join('、');
         }
+
+        function updateZhiOptions(ganId, zhiId) {
+            const gan = document.getElementById(ganId).value;
+            const zhiSelect = document.getElementById(zhiId);
+            zhiSelect.innerHTML = '';
+            
+            // 获取该天干对应的有效地支
+            const validZhis = GAN_TO_ZHI_MAP[gan] || [];
+            
+            validZhis.forEach(zhi => {
+                const option = document.createElement('option');
+                option.value = zhi;
+                option.textContent = zhi;
+                // 设置五行颜色
+                option.style.color = WUXING_COLORS[zhi] || '#000';
+                zhiSelect.appendChild(option);
+            });
+        }
+
+        // 页面加载时初始化地支选项
+        window.addEventListener('DOMContentLoaded', function() {
+            // 初始化时辰地支选项
+            updateZhiOptions('custom-hour-gan', 'custom-hour-zhi');
+            // 初始化刻钟地支选项
+            updateZhiOptions('custom-ke-gan', 'custom-ke-zhi');
+        });
 
     </script>
 </body>
