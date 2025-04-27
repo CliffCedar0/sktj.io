@@ -159,6 +159,10 @@
         </div>
 
         <button class="btn btn-success mt-3" onclick="calculate()">排盘</button>
+        <div id="navigation-buttons" class="d-flex justify-content-between mt-4 d-none">
+            <button class="btn btn-success btn-sm" style="width: 45%;" onclick="navigateToPrevious()">上一个盘</button>
+            <button class="btn btn-success btn-sm" style="width: 45%;" onclick="navigateToNext()">下一个盘</button>
+        </div>
         <table id="full-ganzhi" class="table table-bordered mt-3 d-none">
             <tr>
                 <td class="table-primary">年柱</td>
@@ -194,6 +198,8 @@
             </tr>
             <tbody id="dizhi-shensha-body"></tbody>
         </table>
+
+
     </div>
     <div class="container text-center">
         <p class="mt-4 text-muted">
@@ -459,9 +465,6 @@
             const shengxiaoHour = getLongevity(shiGan, shiZhi);
             const shengxiaoKe = getLongevity(keGan, keZhi);
 
-
-            
-
             // 更新界面
             updateDisplay({
                 shiGan, 
@@ -484,8 +487,10 @@
             });
             // 更新神煞显示
             updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
-            document.getElementById('tiangan-shensha-table').classList.remove('d-none');
-            document.getElementById('dizhi-shensha-table').classList.remove('d-none');
+            document.getElementById('shensha-table').classList.remove('d-none');
+            
+            // 显示导航按钮
+            document.getElementById('navigation-buttons').classList.remove('d-none');
         }
 
         function calculateFromCustomGanzhi() {
@@ -495,44 +500,8 @@
             const keGan = document.getElementById('custom-ke-gan').value;
             const keZhi = document.getElementById('custom-ke-zhi').value;
             
-            // 计算旬空
-            const hourGanZhi = shiGan + shiZhi;
-            const keGanZhi = keGan + keZhi;
-            
-            const xunkongHour = getXunKong(hourGanZhi);
-            const xunkongKe = getXunKong(keGanZhi);
-            
-            // 计算十二长生
-            const shengxiaoHour = getLongevity(shiGan, shiZhi);
-            const shengxiaoKe = getLongevity(keGan, keZhi);
-
-            // 自定义干支模式下不显示完整八字
-            document.getElementById('full-ganzhi').classList.add('d-none');
-
-            // 更新界面显示
-            updateDisplay({
-                shiGan, 
-                shiZhi,
-                keGan, 
-                keZhi,
-                shengxiaoHour,
-                shengxiaoKe,
-                yearGanzhi: '',
-                monthGanzhi: '',
-                dayGanzhi: '',
-                hourGanzhi: shiGan + shiZhi,
-                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
-                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
-                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
-                touganHour: TOUGAN_MAP[shiZhi] || [],
-                touganKe: TOUGAN_MAP[keZhi] || [],
-                xunkongHour,
-                xunkongKe
-            });
-            
-            // 更新神煞显示
-            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
-            document.getElementById('shensha-table').classList.remove('d-none');
+            // 直接使用通用的干支计算函数
+            calculateFromGanzhi(shiGan, shiZhi, keGan, keZhi);
         }
 
         function calculateFromRandomNumber() {
@@ -554,9 +523,6 @@
             const timeGanZhi = lunar.getTimeInGanZhi();
             const shiGan = timeGanZhi[0];
             const shiZhi = timeGanZhi[1];
-            const yearGanzhi = lunar.getYearInGanZhi();
-            const monthGanzhi = lunar.getMonthInGanZhi();
-            const dayGanzhi = lunar.getDayInGanZhi();
             
             // 将1-12的数字映射到地支（子=1，丑=2，...，亥=12）
             const keIndex = randomNum - 1;
@@ -565,41 +531,8 @@
             // 根据时干和刻支索引计算刻干
             const keGan = getKeGan(shiGan, keIndex);
             
-            // 计算旬空
-            const hourGanZhi = shiGan + shiZhi;
-            const keGanZhi = keGan + keZhi;
-            
-            const xunkongHour = getXunKong(hourGanZhi);
-            const xunkongKe = getXunKong(keGanZhi);
-            
-            // 计算十二长生
-            const shengxiaoHour = getLongevity(shiGan, shiZhi);
-            const shengxiaoKe = getLongevity(keGan, keZhi);
-            
-            // 更新界面
-            updateDisplay({
-                shiGan, 
-                shiZhi,
-                keGan, 
-                keZhi,
-                shengxiaoHour,
-                shengxiaoKe,
-                yearGanzhi,
-                monthGanzhi,
-                dayGanzhi,
-                hourGanzhi: timeGanZhi,
-                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
-                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
-                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
-                touganHour: TOUGAN_MAP[shiZhi] || [],
-                touganKe: TOUGAN_MAP[keZhi] || [],
-                xunkongHour,
-                xunkongKe
-            });
-            
-            // 更新神煞显示
-            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
-            document.getElementById('shensha-table').classList.remove('d-none');
+            // 直接使用通用的干支计算函数
+            calculateFromGanzhi(shiGan, shiZhi, keGan, keZhi);
         }
 
         // ================== 工具函数 ==================
@@ -619,13 +552,16 @@
             setCell('hour-gan', data.shiGan);
             setCell('hour-zhi', data.shiZhi);
             
-            // 只在非自定义干支模式下显示完整八字
-            if (!document.getElementById('custom-ganzhi').checked) {
+            // 根据数据决定是否显示完整八字
+            if (data.showFullBazi || document.getElementById('current-time').checked || 
+                document.getElementById('custom-time').checked) {
                 setGanzhiColor('year-ganzhi', data.yearGanzhi);
                 setGanzhiColor('month-ganzhi', data.monthGanzhi);
                 setGanzhiColor('day-ganzhi', data.dayGanzhi);
                 setGanzhiColor('hour-ganzhi', data.hourGanzhi);
                 document.getElementById('full-ganzhi').classList.remove('d-none');
+            } else {
+                document.getElementById('full-ganzhi').classList.add('d-none');
             }
             
             // 刻柱信息
@@ -840,6 +776,149 @@
             // 初始化刻钟地支选项
             updateZhiOptions('custom-ke-gan', 'custom-ke-zhi');
         });
+
+        // 获取时柱信息
+        function getTimeInfo() {
+            // 取得当前界面上的时干时支
+            const shiGan = document.getElementById('hour-gan').textContent;
+            const shiZhi = document.getElementById('hour-zhi').textContent;
+            const keGan = document.getElementById('ke-gan').textContent;
+            const keZhi = document.getElementById('ke-zhi').textContent;
+            
+            return { shiGan, shiZhi, keGan, keZhi };
+        }
+        
+        // 导航到下一个盘
+        function navigateToNext() {
+            const { shiGan, shiZhi, keGan, keZhi } = getTimeInfo();
+            
+            // 获取当前刻支的索引
+            let keZhiIndex = diZhi.indexOf(keZhi);
+            let keGanIndex = tianGan.indexOf(keGan);
+            let shiZhiIndex = diZhi.indexOf(shiZhi);
+            let shiGanIndex = tianGan.indexOf(shiGan);
+            
+            // 刻支向后移动一位
+            keZhiIndex = (keZhiIndex + 1) % 12;
+            const newKeZhi = diZhi[keZhiIndex];
+            
+            // 如果刻支循环回到子，时支也需要向后移动一位
+            let newShiZhi = shiZhi;
+            let newShiGan = shiGan;
+            
+            if (keZhi === '亥' && newKeZhi === '子') {
+                shiZhiIndex = (shiZhiIndex + 1) % 12;
+                newShiZhi = diZhi[shiZhiIndex];
+                
+                // 如果时支也循环回到子，时干需要按照十天干规则变化
+                if (shiZhi === '亥' && newShiZhi === '子') {
+                    shiGanIndex = (shiGanIndex + 1) % 10;
+                    newShiGan = tianGan[shiGanIndex];
+                }
+            }
+            
+            // 获取当前的年月日柱（如果存在）
+            const yearGanzhi = document.getElementById('year-ganzhi').textContent || '';
+            const monthGanzhi = document.getElementById('month-ganzhi').textContent || '';
+            const dayGanzhi = document.getElementById('day-ganzhi').textContent || '';
+            
+            // 根据时干和新的刻支索引计算新的刻干
+            const newKeIndex = keZhiIndex;
+            const newKeGan = getKeGan(newShiGan, newKeIndex);
+            
+            // 设置新的值并重新计算
+            calculateFromGanzhi(newShiGan, newShiZhi, newKeGan, newKeZhi, yearGanzhi, monthGanzhi, dayGanzhi);
+        }
+        
+        // 导航到上一个盘
+        function navigateToPrevious() {
+            const { shiGan, shiZhi, keGan, keZhi } = getTimeInfo();
+            
+            // 获取当前刻支的索引
+            let keZhiIndex = diZhi.indexOf(keZhi);
+            let keGanIndex = tianGan.indexOf(keGan);
+            let shiZhiIndex = diZhi.indexOf(shiZhi);
+            let shiGanIndex = tianGan.indexOf(shiGan);
+            
+            // 刻支向前移动一位
+            keZhiIndex = (keZhiIndex - 1 + 12) % 12;  // 加12是为了确保不会出现负数
+            const newKeZhi = diZhi[keZhiIndex];
+            
+            // 如果刻支循环回到亥，时支也需要向前移动一位
+            let newShiZhi = shiZhi;
+            let newShiGan = shiGan;
+            
+            if (keZhi === '子' && newKeZhi === '亥') {
+                shiZhiIndex = (shiZhiIndex - 1 + 12) % 12;  // 加12是为了确保不会出现负数
+                newShiZhi = diZhi[shiZhiIndex];
+                
+                // 如果时支也循环回到亥，时干需要按照十天干规则变化
+                if (shiZhi === '子' && newShiZhi === '亥') {
+                    shiGanIndex = (shiGanIndex - 1 + 10) % 10;  // 加10是为了确保不会出现负数
+                    newShiGan = tianGan[shiGanIndex];
+                }
+            }
+            
+            // 获取当前的年月日柱（如果存在）
+            const yearGanzhi = document.getElementById('year-ganzhi').textContent || '';
+            const monthGanzhi = document.getElementById('month-ganzhi').textContent || '';
+            const dayGanzhi = document.getElementById('day-ganzhi').textContent || '';
+            
+            // 根据时干和新的刻支索引计算新的刻干
+            const newKeIndex = keZhiIndex;
+            const newKeGan = getKeGan(newShiGan, newKeIndex);
+            
+            // 设置新的值并重新计算
+            calculateFromGanzhi(newShiGan, newShiZhi, newKeGan, newKeZhi, yearGanzhi, monthGanzhi, dayGanzhi);
+        }
+        
+        // 根据给定的干支进行计算
+        function calculateFromGanzhi(shiGan, shiZhi, keGan, keZhi, yearGanzhi='', monthGanzhi='', dayGanzhi='') {
+            // 计算旬空
+            const hourGanZhi = shiGan + shiZhi;
+            const keGanZhi = keGan + keZhi;
+            
+            const xunkongHour = getXunKong(hourGanZhi);
+            const xunkongKe = getXunKong(keGanZhi);
+            
+            // 计算十二长生
+            const shengxiaoHour = getLongevity(shiGan, shiZhi);
+            const shengxiaoKe = getLongevity(keGan, keZhi);
+            
+            // 确定是否显示完整八字
+            const showFullBazi = document.getElementById('current-time').checked || 
+                              document.getElementById('custom-time').checked ||
+                              (yearGanzhi && monthGanzhi && dayGanzhi);
+            
+            // 更新界面显示
+            updateDisplay({
+                shiGan, 
+                shiZhi,
+                keGan, 
+                keZhi,
+                shengxiaoHour,
+                shengxiaoKe,
+                yearGanzhi,
+                monthGanzhi,
+                dayGanzhi,
+                hourGanzhi: shiGan + shiZhi,
+                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
+                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
+                shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
+                touganHour: TOUGAN_MAP[shiZhi] || [],
+                touganKe: TOUGAN_MAP[keZhi] || [],
+                xunkongHour,
+                xunkongKe,
+                showFullBazi
+            });
+            
+            // 更新神煞显示
+            updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            document.getElementById('shensha-table').classList.remove('d-none');
+            
+            // 显示导航按钮
+            document.getElementById('navigation-buttons').classList.remove('d-none');
+        }
 
     </script>
 </body>
