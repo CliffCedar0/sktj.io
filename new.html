@@ -202,8 +202,51 @@
             <button class="btn btn-success btn-sm" style="width: 45%;" onclick="navigateToNext()">下一个盘</button>
         </div>
         <div id="shishen-buttons" class="d-flex justify-content-between mt-2 d-none">
-            <button class="btn btn-success btn-sm" style="width: 45%;" onclick="showShishenModal('hour')">时柱十神</button>
-            <button class="btn btn-success btn-sm" style="width: 45%;" onclick="showShishenModal('ke')">刻柱十神</button>
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showShishenModal('hour')">时柱十神</button>
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showShishenModal('ke')">刻柱十神</button>
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showTwelveHouses()">十二宫</button>
+        </div>
+
+        <!-- 十二宫弹窗 -->
+        <div class="modal fade" id="twelveHousesModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">十二宫</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td id="house-1"></td>
+                                    <td id="house-2"></td>
+                                    <td id="house-3"></td>
+                                    <td id="house-4"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-5"></td>
+                                    <td class="table-primary" id="hour-gan-house"></td>
+                                    <td class="table-primary" id="ke-gan-house"></td>
+                                    <td id="house-6"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-7"></td>
+                                    <td class="table-primary" id="hour-zhi-house"></td>
+                                    <td class="table-primary" id="ke-zhi-house"></td>
+                                    <td id="house-8"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-9"></td>
+                                    <td id="house-10"></td>
+                                    <td id="house-11"></td>
+                                    <td id="house-12"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 时柱十神弹窗 -->
@@ -616,7 +659,7 @@
                 }
             });
             
-            // 显示导航按钮和十神按钮
+            // 显示导航按钮和功能按钮
             document.getElementById('navigation-buttons').classList.remove('d-none');
             document.getElementById('shishen-buttons').classList.remove('d-none');
             
@@ -1070,6 +1113,7 @@
             
             // 显示导航按钮
             document.getElementById('navigation-buttons').classList.remove('d-none');
+            document.getElementById('shishen-buttons').classList.remove('d-none');
         }
 
         const NAYIN_TO_GAN = {
@@ -1152,6 +1196,114 @@
             modal.show();
         }
 
+        function showTwelveHouses() {
+            const hourZhi = document.getElementById('hour-zhi').textContent;
+            if (!hourZhi) {
+                alert('请先排盘后再查看十二宫');
+                return;
+            }
+            updateTwelveHouses();
+            const twelveHousesModal = new bootstrap.Modal(document.getElementById('twelveHousesModal'));
+            twelveHousesModal.show();
+        }
+
+        function updateTwelveHouses() {
+            // 地支顺序
+            const branches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
+            // 十二宫名称（命宫在时支位置，顺序固定）
+            const houseNames = ['命', '财', '兄', '宅', '子', '奴', '夫', '疾', '迁', '官', '福', '相'];
+            
+            // 获取时支和其他干支信息
+            const hourZhiEl = document.getElementById('hour-zhi');
+            const hourGanEl = document.getElementById('hour-gan');
+            const keGanEl = document.getElementById('ke-gan');
+            const keZhiEl = document.getElementById('ke-zhi');
+            
+            if (!hourZhiEl || !hourGanEl || !keGanEl || !keZhiEl) {
+                console.error('无法找到干支元素');
+                return;
+            }
+            
+            const hourZhi = hourZhiEl.textContent;
+            const hourGan = hourGanEl.textContent;
+            const keGan = keGanEl.textContent;
+            const keZhi = keZhiEl.textContent;
+
+            if (!hourZhi) return;
+
+            // 找到时支在地支序列中的位置
+            const startIndex = branches.indexOf(hourZhi);
+            if (startIndex === -1) return;
+            
+            // 根据时支确定每个宫位对应的地支
+            const houseToZhi = {};
+            for (let i = 0; i < 12; i++) {
+                // 逆时针，所以用减法并加上12取模
+                const branchIndex = (startIndex - i + 12) % 12;
+                const branch = branches[branchIndex];
+                const houseName = houseNames[i];
+                houseToZhi[houseName] = branch;
+            }
+            
+            // 更新干支单元格
+            const hourGanHouse = document.getElementById('hour-gan-house');
+            const hourZhiHouse = document.getElementById('hour-zhi-house');
+            const keGanHouse = document.getElementById('ke-gan-house');
+            const keZhiHouse = document.getElementById('ke-zhi-house');
+            
+            if (hourGanHouse) hourGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourGan]}">${hourGan}</span>`;
+            if (hourZhiHouse) hourZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourZhi]}">${hourZhi}</span>`;
+            if (keGanHouse) keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
+            if (keZhiHouse) keZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keZhi]}">${keZhi}</span>`;
+            
+            // 按照HTML结构的ID来设置十二宫
+            // 第一行：子、宅、兄、财
+            setHouseContent('house-1', '子', houseToZhi);
+            setHouseContent('house-2', '宅', houseToZhi);
+            setHouseContent('house-3', '兄', houseToZhi);
+            setHouseContent('house-4', '财', houseToZhi);
+            
+            // 第二行：奴、时干、刻干、命
+            setHouseContent('house-5', '奴', houseToZhi);
+            // hour-gan-house 已处理
+            // ke-gan-house 已处理
+            setHouseContent('house-6', '命', houseToZhi);
+            
+            // 第三行：夫、时支、刻支、相
+            setHouseContent('house-7', '夫', houseToZhi);
+            // hour-zhi-house 已处理
+            // ke-zhi-house 已处理
+            setHouseContent('house-8', '相', houseToZhi);
+            
+            // 第四行：疾、迁、官、福
+            setHouseContent('house-9', '疾', houseToZhi);
+            setHouseContent('house-10', '迁', houseToZhi);
+            setHouseContent('house-11', '官', houseToZhi);
+            setHouseContent('house-12', '福', houseToZhi);
+        }
+        
+        // 辅助函数：更新宫位单元格内容
+        function setHouseContent(cellId, houseName, houseToZhi) {
+            const cell = document.getElementById(cellId);
+            if (!cell) {
+                console.error(`找不到元素: ${cellId}`);
+                return;
+            }
+            
+            const branch = houseToZhi[houseName];
+            if (branch) {
+                cell.innerHTML = `<span style="color: ${WUXING_COLORS[branch]}">${houseName}</span>`;
+            } else {
+                cell.textContent = houseName;
+            }
+        }
+
+        // 在calculate函数中添加对updateTwelveHouses的调用
+        const originalCalculate = calculate;
+        calculate = function() {
+            originalCalculate();
+            // updateTwelveHouses(); // 移除此行，确保只在显示弹窗时更新十二宫
+        }
     </script>
 </body>
 </html>
