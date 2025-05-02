@@ -163,6 +163,84 @@
             <button class="btn btn-success btn-sm" style="width: 45%;" onclick="navigateToPrevious()">上一个盘</button>
             <button class="btn btn-success btn-sm" style="width: 45%;" onclick="navigateToNext()">下一个盘</button>
         </div>
+        
+        <!-- 添加十神和十二宫按钮 -->
+        <div id="shishen-buttons" class="d-flex justify-content-between mt-2 d-none">
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showShishenModal('hour')">时柱十神</button>
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showShishenModal('ke')">刻柱十神</button>
+            <button class="btn btn-success btn-sm" style="width: 30%;" onclick="showTwelveHouses()">十二宫</button>
+        </div>
+
+        <!-- 十二宫弹窗 -->
+        <div class="modal fade" id="twelveHousesModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">十二宫</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered mb-0">
+                            <tbody>
+                                <tr>
+                                    <td id="house-1"></td>
+                                    <td id="house-2"></td>
+                                    <td id="house-3"></td>
+                                    <td id="house-4"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-5"></td>
+                                    <td class="table-primary" id="hour-gan-house"></td>
+                                    <td class="table-primary" id="ke-gan-house"></td>
+                                    <td id="house-6"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-7"></td>
+                                    <td class="table-primary" id="hour-zhi-house"></td>
+                                    <td class="table-primary" id="ke-zhi-house"></td>
+                                    <td id="house-8"></td>
+                                </tr>
+                                <tr>
+                                    <td id="house-9"></td>
+                                    <td id="house-10"></td>
+                                    <td id="house-11"></td>
+                                    <td id="house-12"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 时柱十神弹窗 -->
+        <div class="modal fade" id="hourShishenModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">时柱十神</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="hourShishenContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 刻柱十神弹窗 -->
+        <div class="modal fade" id="keShishenModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">刻柱十神</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="keShishenContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <table id="full-ganzhi" class="table table-bordered mt-3 d-none">
             <tr>
                 <td class="table-primary">年柱</td>
@@ -552,6 +630,10 @@
             setCell('hour-gan', data.shiGan);
             setCell('hour-zhi', data.shiZhi);
             
+            // 刻柱信息
+            setCell('ke-gan', data.keGan);
+            setCell('ke-zhi', data.keZhi);
+            
             // 根据数据决定是否显示完整八字
             if (data.showFullBazi || document.getElementById('current-time').checked || 
                 document.getElementById('custom-time').checked) {
@@ -559,22 +641,15 @@
                 setGanzhiColor('month-ganzhi', data.monthGanzhi);
                 setGanzhiColor('day-ganzhi', data.dayGanzhi);
                 setGanzhiColor('hour-ganzhi', data.hourGanzhi);
-                document.getElementById('full-ganzhi').classList.remove('d-none');
-            } else {
-                document.getElementById('full-ganzhi').classList.add('d-none');
             }
             
-            // 刻柱信息
-            setCell('ke-gan', data.keGan);
-            setCell('ke-zhi', data.keZhi);
-
             // 十二长生显示
-            setLongevity('shengxiao-hour', data.shengxiaoHour, data.shiZhi);
-            setLongevity('shengxiao-ke', data.shengxiaoKe, data.keZhi);
+            setCell('shengxiao-hour', data.shengxiaoHour);
+            setCell('shengxiao-ke', data.shengxiaoKe);
             
             // 其他数据
-            setNaYinColor('nayin-hour', data.nayinHour);
-            setNaYinColor('nayin-ke', data.nayinKe);
+            setCell('nayin-hour', data.nayinHour);
+            setCell('nayin-ke', data.nayinKe);
             setShishenColor('shishen', data.shishen, data.keGan);
             setShishenColor('self-label', '我', data.shiGan);
             setStyledTougan('tougan-hour', data.touganHour);
@@ -584,7 +659,17 @@
             setStyledCell('xunkong-hour', data.xunkongHour);
             setStyledCell('xunkong-ke', data.xunkongKe);
             
+            // 更新神煞显示
+            updateShenshaDisplay(data.shiGan, data.shiZhi, data.keGan, data.keZhi);
+            
+            // 显示所有表格
+            document.getElementById('full-ganzhi').classList.remove('d-none');
             document.getElementById('zodiac-table').classList.remove('d-none');
+            document.getElementById('shensha-table').classList.remove('d-none');
+            
+            // 显示导航按钮和功能按钮
+            document.getElementById('navigation-buttons').classList.remove('d-none');
+            document.getElementById('shishen-buttons').classList.remove('d-none');
         }
 
         function setShishenColor(id, text, gan) {
@@ -914,12 +999,197 @@
             
             // 更新神煞显示
             updateShenshaDisplay(shiGan, shiZhi, keGan, keZhi);
+            
+            // 直接显示所有表格（防止updateDisplay中有遗漏）
+            document.getElementById('full-ganzhi').classList.remove('d-none');
+            document.getElementById('zodiac-table').classList.remove('d-none');
             document.getElementById('shensha-table').classList.remove('d-none');
             
             // 显示导航按钮
             document.getElementById('navigation-buttons').classList.remove('d-none');
+            document.getElementById('shishen-buttons').classList.remove('d-none');
         }
 
+        // ================== 十二宫相关函数 ==================
+        function showTwelveHouses() {
+            const hourZhi = document.getElementById('hour-zhi').textContent;
+            if (!hourZhi) {
+                alert('请先排盘后再查看十二宫');
+                return;
+            }
+            updateTwelveHouses();
+            const twelveHousesModal = new bootstrap.Modal(document.getElementById('twelveHousesModal'));
+            twelveHousesModal.show();
+        }
+
+        function updateTwelveHouses() {
+            // 十二宫名称
+            const houseNames = ['命', '财', '兄', '宅', '子', '奴', '夫', '疾', '迁', '官', '福', '相'];
+            
+            // 获取时支和其他干支信息
+            const hourZhiEl = document.getElementById('hour-zhi');
+            const hourGanEl = document.getElementById('hour-gan');
+            const keGanEl = document.getElementById('ke-gan');
+            const keZhiEl = document.getElementById('ke-zhi');
+            
+            if (!hourZhiEl || !hourGanEl || !keGanEl || !keZhiEl) {
+                console.error('无法找到干支元素');
+                return;
+            }
+            
+            const hourZhi = hourZhiEl.textContent;
+            const hourGan = hourGanEl.textContent;
+            const keGan = keGanEl.textContent;
+            const keZhi = keZhiEl.textContent;
+
+            if (!hourZhi) return;
+            
+            // 地支对应表格位置
+            const branchPositions = {
+                '子': 1,
+                '丑': 2,
+                '寅': 3,
+                '卯': 4,
+                '辰': 5,
+                '巳': 6,
+                '午': 7,
+                '未': 8,
+                '申': 9,
+                '酉': 10,
+                '戌': 11,
+                '亥': 12
+            };
+            
+            // 表格位置对应HTML元素ID
+            const positionToElementId = {
+                1: 'house-11',  // 子
+                2: 'house-10',  // 丑
+                3: 'house-9',   // 寅
+                4: 'house-7',   // 卯
+                5: 'house-5',   // 辰
+                6: 'house-1',   // 巳
+                7: 'house-2',   // 午
+                8: 'house-3',   // 未
+                9: 'house-4',   // 申
+                10: 'house-8',  // 酉
+                11: 'house-12', // 戌
+                12: 'house-6'   // 亥
+            };
+            
+            // 更新干支单元格
+            const hourGanHouse = document.getElementById('hour-gan-house');
+            const hourZhiHouse = document.getElementById('hour-zhi-house');
+            const keGanHouse = document.getElementById('ke-gan-house');
+            const keZhiHouse = document.getElementById('ke-zhi-house');
+            
+            if (hourGanHouse) hourGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourGan]}">${hourGan}</span>`;
+            if (hourZhiHouse) hourZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourZhi]}">${hourZhi}</span>`;
+            if (keGanHouse) {
+                keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
+            }
+            if (keZhiHouse) keZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keZhi]}">${keZhi}</span>`;
+            
+            // 清空所有宫位
+            for (let i = 1; i <= 12; i++) {
+                const cell = document.getElementById(`house-${i}`);
+                if (cell) cell.innerHTML = '';
+            }
+            
+            // 获取时支对应的位置
+            const hourZhiPosition = branchPositions[hourZhi];
+            if (!hourZhiPosition) return;
+            
+            // 从时支位置开始，逆时针排列十二宫
+            for (let i = 0; i < 12; i++) {
+                // 计算当前宫位
+                // 如果当前位置是hourZhiPosition，放置"命"宫
+                // 然后逆时针依次放置其他宫位
+                const position = (hourZhiPosition - i + 11) % 12;
+                const actualPosition = position === 0 ? 12 : position; // 处理余数为0的情况
+                
+                // 获取单元格ID
+                const cellId = positionToElementId[actualPosition];
+                const houseName = houseNames[i];
+                
+                // 更新单元格内容
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    cell.innerHTML = houseName;
+                }
+            }
+        }
+
+        // 确保在calculate函数最后添加以下代码
+        const originalCalculate = calculate;
+        calculate = function() {
+            originalCalculate();
+            // 显示功能按钮
+            document.getElementById('shishen-buttons').classList.remove('d-none');
+        }
+        
+        // 添加十神弹窗功能
+        function showShishenModal(type) {
+            const gan = document.getElementById(type === 'hour' ? 'hour-gan' : 'ke-gan').textContent;
+            if (!gan) {
+                alert('请先排盘后再查看十神');
+                return;
+            }
+            
+            const modalId = type === 'hour' ? 'hourShishenModal' : 'keShishenModal';
+            const contentId = type === 'hour' ? 'hourShishenContent' : 'keShishenContent';
+            
+            // 化耀对应关系
+            const tianxingMap = {
+                '比肩': '天禄',
+                '劫财': '天暗',
+                '食神': '天暗',
+                '伤官': '天耗',
+                '偏财': '天荫',
+                '正财': '天贵',
+                '七杀': '天刑',
+                '正官': '天印',
+                '偏印': '天囚',
+                '正印': '天权'
+            };
+            
+            let content = '<table class="table table-bordered">';
+            content += '<tr><th class="table-primary">十神</th><th class="table-primary">化耀</th><th class="table-primary">天干</th><th class="table-primary">地支</th></tr>';
+            
+            // 收集所有结果并按十神排序
+            const results = tianGan.map(targetGan => {
+                return {
+                    gan: targetGan,
+                    shishen: SHISHEN_MAP[gan]?.[targetGan] || '',
+                    tianxing: tianxingMap[SHISHEN_MAP[gan]?.[targetGan]] || '',
+                    zhi: GAN_TO_ZHI_MAP[targetGan]?.[0] || ''
+                };
+            });
+
+            // 定义十神顺序
+            const shishenOrder = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印'];
+            
+            // 按十神顺序排序
+            results.sort((a, b) => {
+                return shishenOrder.indexOf(a.shishen) - shishenOrder.indexOf(b.shishen);
+            });
+
+            // 生成表格内容
+            results.forEach(result => {
+                content += `<tr>
+                    <td>${result.shishen}</td>
+                    <td>${result.tianxing}</td>
+                    <td style="color: ${WUXING_COLORS[result.gan]}">${result.gan}</td>
+                    <td style="color: ${WUXING_COLORS[result.zhi]}">${result.zhi}</td>
+                </tr>`;
+            });
+            
+            content += '</table>';
+            document.getElementById(contentId).innerHTML = content;
+            
+            // 显示弹窗
+            const modal = new bootstrap.Modal(document.getElementById(modalId));
+            modal.show();
+        }
     </script>
 </body>
 </html>

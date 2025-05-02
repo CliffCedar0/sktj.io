@@ -1208,9 +1208,7 @@
         }
 
         function updateTwelveHouses() {
-            // 地支顺序
-            const branches = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'];
-            // 十二宫名称（命宫在时支位置，顺序固定）
+            // 十二宫名称
             const houseNames = ['命', '财', '兄', '宅', '子', '奴', '夫', '疾', '迁', '官', '福', '相'];
             
             // 获取时支和其他干支信息
@@ -1230,20 +1228,38 @@
             const keZhi = keZhiEl.textContent;
 
             if (!hourZhi) return;
-
-            // 找到时支在地支序列中的位置
-            const startIndex = branches.indexOf(hourZhi);
-            if (startIndex === -1) return;
             
-            // 根据时支确定每个宫位对应的地支
-            const houseToZhi = {};
-            for (let i = 0; i < 12; i++) {
-                // 逆时针，所以用减法并加上12取模
-                const branchIndex = (startIndex - i + 12) % 12;
-                const branch = branches[branchIndex];
-                const houseName = houseNames[i];
-                houseToZhi[houseName] = branch;
-            }
+            // 地支对应表格位置
+            const branchPositions = {
+                '子': 1,
+                '丑': 2,
+                '寅': 3,
+                '卯': 4,
+                '辰': 5,
+                '巳': 6,
+                '午': 7,
+                '未': 8,
+                '申': 9,
+                '酉': 10,
+                '戌': 11,
+                '亥': 12
+            };
+            
+            // 表格位置对应HTML元素ID
+            const positionToElementId = {
+                1: 'house-11',  // 子
+                2: 'house-10',  // 丑
+                3: 'house-9',   // 寅
+                4: 'house-7',   // 卯
+                5: 'house-5',   // 辰
+                6: 'house-1',   // 巳
+                7: 'house-2',   // 午
+                8: 'house-3',   // 未
+                9: 'house-4',   // 申
+                10: 'house-8',  // 酉
+                11: 'house-12', // 戌
+                12: 'house-6'   // 亥
+            };
             
             // 更新干支单元格
             const hourGanHouse = document.getElementById('hour-gan-house');
@@ -1253,48 +1269,39 @@
             
             if (hourGanHouse) hourGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourGan]}">${hourGan}</span>`;
             if (hourZhiHouse) hourZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourZhi]}">${hourZhi}</span>`;
-            if (keGanHouse) keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
+            if (keGanHouse) {
+                keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
+            }
             if (keZhiHouse) keZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keZhi]}">${keZhi}</span>`;
             
-            // 按照HTML结构的ID来设置十二宫
-            // 第一行：子、宅、兄、财
-            setHouseContent('house-1', '子', houseToZhi);
-            setHouseContent('house-2', '宅', houseToZhi);
-            setHouseContent('house-3', '兄', houseToZhi);
-            setHouseContent('house-4', '财', houseToZhi);
-            
-            // 第二行：奴、时干、刻干、命
-            setHouseContent('house-5', '奴', houseToZhi);
-            // hour-gan-house 已处理
-            // ke-gan-house 已处理
-            setHouseContent('house-6', '命', houseToZhi);
-            
-            // 第三行：夫、时支、刻支、相
-            setHouseContent('house-7', '夫', houseToZhi);
-            // hour-zhi-house 已处理
-            // ke-zhi-house 已处理
-            setHouseContent('house-8', '相', houseToZhi);
-            
-            // 第四行：疾、迁、官、福
-            setHouseContent('house-9', '疾', houseToZhi);
-            setHouseContent('house-10', '迁', houseToZhi);
-            setHouseContent('house-11', '官', houseToZhi);
-            setHouseContent('house-12', '福', houseToZhi);
-        }
-        
-        // 辅助函数：更新宫位单元格内容
-        function setHouseContent(cellId, houseName, houseToZhi) {
-            const cell = document.getElementById(cellId);
-            if (!cell) {
-                console.error(`找不到元素: ${cellId}`);
-                return;
+            // 清空所有宫位
+            for (let i = 1; i <= 12; i++) {
+                const cell = document.getElementById(`house-${i}`);
+                if (cell) cell.innerHTML = '';
             }
             
-            const branch = houseToZhi[houseName];
-            if (branch) {
-                cell.innerHTML = `<span style="color: ${WUXING_COLORS[branch]}">${houseName}</span>`;
-            } else {
-                cell.textContent = houseName;
+            // 获取时支对应的位置
+            const hourZhiPosition = branchPositions[hourZhi];
+            if (!hourZhiPosition) return;
+            
+            // 从时支位置开始，逆时针排列十二宫
+            for (let i = 0; i < 12; i++) {
+                // 计算当前宫位
+                // 如果当前位置是hourZhiPosition，放置"命"宫
+                // 然后逆时针依次放置其他宫位
+                // 调整计算，偏移量改为 i+1 以将位置往后调整一位
+                const position = (hourZhiPosition - i  + 11) % 12;
+                const actualPosition = position === 0 ? 12 : position; // 处理余数为0的情况
+                
+                // 获取单元格ID
+                const cellId = positionToElementId[actualPosition];
+                const houseName = houseNames[i];
+                
+                // 更新单元格内容
+                const cell = document.getElementById(cellId);
+                if (cell) {
+                    cell.innerHTML = houseName;
+                }
             }
         }
 
