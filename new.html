@@ -989,15 +989,13 @@
             
             // 获取当前刻支的索引
             let keZhiIndex = diZhi.indexOf(keZhi);
-            let keGanIndex = tianGan.indexOf(keGan);
             let shiZhiIndex = diZhi.indexOf(shiZhi);
-            let shiGanIndex = tianGan.indexOf(shiGan);
             
             // 刻支向后移动一位
             keZhiIndex = (keZhiIndex + 1) % 12;
             const newKeZhi = diZhi[keZhiIndex];
             
-            // 如果刻支循环回到子，时支也需要向后移动一位
+            // 当刻支循环到子时，时支向后移动一位
             let newShiZhi = shiZhi;
             let newShiGan = shiGan;
             
@@ -1005,10 +1003,22 @@
                 shiZhiIndex = (shiZhiIndex + 1) % 12;
                 newShiZhi = diZhi[shiZhiIndex];
                 
-                // 如果时支也循环回到子，时干需要按照十天干规则变化
-                if (shiZhi === '亥' && newShiZhi === '子') {
-                    shiGanIndex = (shiGanIndex + 1) % 10;
-                    newShiGan = tianGan[shiGanIndex];
+                // 找出当前的时干在天干列表中的索引
+                const shiGanIndex = tianGan.indexOf(shiGan);
+                // 天干向后移动一位（循环）
+                const newShiGanIndex = (shiGanIndex + 1) % 10;
+                newShiGan = tianGan[newShiGanIndex];
+                
+                // 检查组合是否有效，如果无效则调整
+                if (!VALID_GANZHI_PAIRS.includes(newShiGan + newShiZhi)) {
+                    // 尝试找到与新时支匹配的有效时干
+                    for (let i = 0; i < tianGan.length; i++) {
+                        const testGan = tianGan[i];
+                        if (VALID_GANZHI_PAIRS.includes(testGan + newShiZhi)) {
+                            newShiGan = testGan;
+                            break;
+                        }
+                    }
                 }
             }
             
@@ -1031,15 +1041,13 @@
             
             // 获取当前刻支的索引
             let keZhiIndex = diZhi.indexOf(keZhi);
-            let keGanIndex = tianGan.indexOf(keGan);
             let shiZhiIndex = diZhi.indexOf(shiZhi);
-            let shiGanIndex = tianGan.indexOf(shiGan);
             
             // 刻支向前移动一位
             keZhiIndex = (keZhiIndex - 1 + 12) % 12;  // 加12是为了确保不会出现负数
             const newKeZhi = diZhi[keZhiIndex];
             
-            // 如果刻支循环回到亥，时支也需要向前移动一位
+            // 当刻支循环到亥时，时支向前移动一位
             let newShiZhi = shiZhi;
             let newShiGan = shiGan;
             
@@ -1047,10 +1055,22 @@
                 shiZhiIndex = (shiZhiIndex - 1 + 12) % 12;  // 加12是为了确保不会出现负数
                 newShiZhi = diZhi[shiZhiIndex];
                 
-                // 如果时支也循环回到亥，时干需要按照十天干规则变化
-                if (shiZhi === '子' && newShiZhi === '亥') {
-                    shiGanIndex = (shiGanIndex - 1 + 10) % 10;  // 加10是为了确保不会出现负数
-                    newShiGan = tianGan[shiGanIndex];
+                // 找出当前的时干在天干列表中的索引
+                const shiGanIndex = tianGan.indexOf(shiGan);
+                // 天干向前移动一位（循环）
+                const newShiGanIndex = (shiGanIndex - 1 + 10) % 10;
+                newShiGan = tianGan[newShiGanIndex];
+                
+                // 检查组合是否有效，如果无效则调整
+                if (!VALID_GANZHI_PAIRS.includes(newShiGan + newShiZhi)) {
+                    // 尝试找到与新时支匹配的有效时干
+                    for (let i = tianGan.length - 1; i >= 0; i--) {
+                        const testGan = tianGan[i];
+                        if (VALID_GANZHI_PAIRS.includes(testGan + newShiZhi)) {
+                            newShiGan = testGan;
+                            break;
+                        }
+                    }
                 }
             }
             
