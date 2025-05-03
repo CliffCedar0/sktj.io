@@ -263,6 +263,7 @@
             <tr><td class="table-primary">透干</td><td id="tougan-hour"></td><td id="tougan-ke"></td></tr>
             <tr><td class="table-primary">纳音</td><td id="nayin-hour"></td><td id="nayin-ke"></td></tr>
             <tr><td class="table-primary">十二长生</td><td id="shengxiao-hour"></td><td id="shengxiao-ke"></td></tr>
+            <tr><td class="table-primary">纳音长生</td><td id="nayin-shengxiao-hour"></td><td id="nayin-shengxiao-ke"></td></tr>
             <tr><td class="table-primary">旬空</td><td id="xunkong-hour"></td><td id="xunkong-ke"></td></tr>
                     
         </table>
@@ -423,6 +424,27 @@
             '火': '#ce2d20',
             '土': '#98511e'
         };
+
+        const NAYIN_TO_GAN = {
+            '木': '甲',
+            '火': '丙',
+            '土': '戊',
+            '金': '庚',
+            '水': '壬'
+        };
+
+        function getNayinLongevity(nayin, zhi) {
+            // 从纳音中获取最后一个字（五行）
+            const wuxing = nayin.slice(-1);
+            // 获取对应的天干
+            const gan = NAYIN_TO_GAN[wuxing];
+            // 如果找到对应的天干，使用十二长生表计算
+            if (gan) {
+                return longevityMap[gan][zhi];
+            }
+            return '未知';
+        }
+
         const tianganShensha = {
             "贵人": { "甲": "丑、未", "乙": "子、申", "丙": "亥、酉", "丁": "亥、酉", "戊": "丑、未", "己": "子、申", "庚": "丑、未", "辛": "寅、午", "壬": "卯、巳", "癸": "卯、巳" },
             "沐浴": { "甲": "亥", "乙": "亥", "丙": "卯", "丁": "卯", "戊": "酉", "己": "酉", "庚": "午", "辛": "午", "壬": "酉", "癸": "酉" },
@@ -543,6 +565,10 @@
             const shengxiaoHour = getLongevity(shiGan, shiZhi);
             const shengxiaoKe = getLongevity(keGan, keZhi);
 
+            // 计算纳音
+            const nayinHour = NAYIN_MAP[shiGan + shiZhi] || '未知';
+            const nayinKe = NAYIN_MAP[keGan + keZhi] || '未知';
+
             // 更新界面
             updateDisplay({
                 shiGan, 
@@ -555,8 +581,8 @@
                 monthGanzhi,
                 dayGanzhi,
                 hourGanzhi: timeGanZhi,
-                nayinHour: NAYIN_MAP[shiGan + shiZhi] || '未知',
-                nayinKe: NAYIN_MAP[keGan + keZhi] || '未知',
+                nayinHour: nayinHour,
+                nayinKe: nayinKe,
                 shishen: SHISHEN_MAP[shiGan]?.[keGan] || '未知',
                 touganHour: TOUGAN_MAP[shiZhi] || [],
                 touganKe: TOUGAN_MAP[keZhi] || [],
@@ -644,12 +670,12 @@
             }
             
             // 十二长生显示
-            setCell('shengxiao-hour', data.shengxiaoHour);
-            setCell('shengxiao-ke', data.shengxiaoKe);
+            setLongevity('shengxiao-hour', data.shengxiaoHour, data.shiGan);
+            setLongevity('shengxiao-ke', data.shengxiaoKe, data.keGan);
             
-            // 其他数据
-            setCell('nayin-hour', data.nayinHour);
-            setCell('nayin-ke', data.nayinKe);
+            // 纳音显示（使用特定函数）
+            setNaYinColor('nayin-hour', data.nayinHour);
+            setNaYinColor('nayin-ke', data.nayinKe);
             setShishenColor('shishen', data.shishen, data.keGan);
             setShishenColor('self-label', '我', data.shiGan);
             setStyledTougan('tougan-hour', data.touganHour);
@@ -658,6 +684,14 @@
             // 更新旬空数据
             setStyledCell('xunkong-hour', data.xunkongHour);
             setStyledCell('xunkong-ke', data.xunkongKe);
+            
+            // 计算纳音长生
+            const nayinShengxiaoHour = getNayinLongevity(data.nayinHour, data.shiZhi);
+            const nayinShengxiaoKe = getNayinLongevity(data.nayinKe, data.keZhi);
+            
+            // 更新纳音长生显示
+            setNayinLongevity('nayin-shengxiao-hour', nayinShengxiaoHour, data.nayinHour);
+            setNayinLongevity('nayin-shengxiao-ke', nayinShengxiaoKe, data.nayinKe);
             
             // 更新神煞显示
             updateShenshaDisplay(data.shiGan, data.shiZhi, data.keGan, data.keZhi);
@@ -1095,9 +1129,9 @@
                 7: 'house-2',   // 午
                 8: 'house-3',   // 未
                 9: 'house-4',   // 申
-                10: 'house-8',  // 酉
-                11: 'house-12', // 戌
-                12: 'house-6'   // 亥
+                10: 'house-6',  // 酉
+                11: 'house-8', // 戌
+                12: 'house-12'   // 亥
             };
             
             // 更新干支单元格
@@ -1128,7 +1162,7 @@
                 // 计算当前宫位
                 // 如果当前位置是hourZhiPosition，放置"命"宫
                 // 然后逆时针依次放置其他宫位
-                const position = (hourZhiPosition - i + 11) % 12;
+                const position = (hourZhiPosition - i + 12) % 12;
                 const actualPosition = position === 0 ? 12 : position; // 处理余数为0的情况
                 
                 // 获取单元格ID
@@ -1213,6 +1247,15 @@
             // 显示弹窗
             const modal = new bootstrap.Modal(document.getElementById(modalId));
             modal.show();
+        }
+
+        // 修改纳音长生显示的函数
+        function setNayinLongevity(id, text, nayin) {
+            const element = document.getElementById(id);
+            // 获取纳音的最后一个字（五行属性）
+            const wuxing = nayin.slice(-1);
+            // 使用纳音五行的颜色
+            element.innerHTML = `<span style="color: ${naYinColors[wuxing] || '#000'}">${text}</span>`;
         }
     </script>
 </body>

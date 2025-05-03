@@ -1276,9 +1276,9 @@
                 7: 'house-2',   // 午
                 8: 'house-3',   // 未
                 9: 'house-4',   // 申
-                10: 'house-8',  // 酉
-                11: 'house-12', // 戌
-                12: 'house-6'   // 亥
+                10: 'house-6',  // 酉
+                11: 'house-8', // 戌
+                12: 'house-12'   // 亥
             };
             
             // 更新干支单元格
@@ -1310,7 +1310,7 @@
                 // 如果当前位置是hourZhiPosition，放置"命"宫
                 // 然后逆时针依次放置其他宫位
                 // 调整计算，偏移量改为 i+1 以将位置往后调整一位
-                const position = (hourZhiPosition - i  + 11) % 12;
+                const position = (hourZhiPosition - i  + 12) % 12;
                 const actualPosition = position === 0 ? 12 : position; // 处理余数为0的情况
                 
                 // 获取单元格ID
