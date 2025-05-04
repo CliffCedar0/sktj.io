@@ -180,6 +180,10 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="btn-group w-100 mb-3">
+                            <button class="btn btn-primary" id="hour-house-btn" onclick="switchTwelveHouses('hour')">时支十二宫</button>
+                            <button class="btn btn-outline-primary" id="ke-house-btn" onclick="switchTwelveHouses('ke')">刻支十二宫</button>
+                        </div>
                         <table class="table table-bordered mb-0">
                             <tbody>
                                 <tr>
@@ -253,6 +257,12 @@
                 <td id="month-ganzhi" style="width: 25%"></td>
                 <td id="day-ganzhi" style="width: 25%"></td>               
                 <td id="hour-ganzhi" style="width: 25%"></td>
+            </tr>
+            <tr>
+                <td id="year-nayin" style="width: 25%"></td>
+                <td id="month-nayin" style="width: 25%"></td>
+                <td id="day-nayin" style="width: 25%"></td>               
+                <td id="hour-nayin" style="width: 25%"></td>
             </tr>
         </table>
         <table id="zodiac-table" class="table table-bordered mt-3 d-none">
@@ -667,6 +677,17 @@
                 setGanzhiColor('month-ganzhi', data.monthGanzhi);
                 setGanzhiColor('day-ganzhi', data.dayGanzhi);
                 setGanzhiColor('hour-ganzhi', data.hourGanzhi);
+                
+                // 添加四柱纳音
+                const yearNayin = NAYIN_MAP[data.yearGanzhi] || '';
+                const monthNayin = NAYIN_MAP[data.monthGanzhi] || '';
+                const dayNayin = NAYIN_MAP[data.dayGanzhi] || '';
+                const hourNayin = NAYIN_MAP[data.hourGanzhi] || '';
+                
+                setNaYinColor('year-nayin', yearNayin);
+                setNaYinColor('month-nayin', monthNayin);
+                setNaYinColor('day-nayin', dayNayin);
+                setNaYinColor('hour-nayin', hourNayin);
             }
             
             // 十二长生显示
@@ -1075,12 +1096,23 @@
                 alert('请先排盘后再查看十二宫');
                 return;
             }
-            updateTwelveHouses();
+            // 默认显示时支十二宫
+            updateTwelveHouses('hour');
             const twelveHousesModal = new bootstrap.Modal(document.getElementById('twelveHousesModal'));
             twelveHousesModal.show();
         }
 
-        function updateTwelveHouses() {
+        // 切换十二宫显示类型
+        function switchTwelveHouses(type) {
+            // 更新按钮状态
+            document.getElementById('hour-house-btn').className = type === 'hour' ? 'btn btn-primary' : 'btn btn-outline-primary';
+            document.getElementById('ke-house-btn').className = type === 'ke' ? 'btn btn-primary' : 'btn btn-outline-primary';
+            
+            // 更新十二宫显示
+            updateTwelveHouses(type);
+        }
+
+        function updateTwelveHouses(type = 'hour') {
             // 十二宫名称
             const houseNames = ['命', '财', '兄', '宅', '子', '奴', '夫', '疾', '迁', '官', '福', '相'];
             
@@ -1100,7 +1132,10 @@
             const keGan = keGanEl.textContent;
             const keZhi = keZhiEl.textContent;
 
-            if (!hourZhi) return;
+            // 根据type确定使用哪个地支作为命宫的位置
+            const mainZhi = type === 'hour' ? hourZhi : keZhi;
+            
+            if (!mainZhi) return;
             
             // 地支对应表格位置
             const branchPositions = {
@@ -1142,9 +1177,7 @@
             
             if (hourGanHouse) hourGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourGan]}">${hourGan}</span>`;
             if (hourZhiHouse) hourZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[hourZhi]}">${hourZhi}</span>`;
-            if (keGanHouse) {
-                keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
-            }
+            if (keGanHouse) keGanHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keGan]}">${keGan}</span>`;
             if (keZhiHouse) keZhiHouse.innerHTML = `<span style="color: ${WUXING_COLORS[keZhi]}">${keZhi}</span>`;
             
             // 清空所有宫位
@@ -1153,16 +1186,16 @@
                 if (cell) cell.innerHTML = '';
             }
             
-            // 获取时支对应的位置
-            const hourZhiPosition = branchPositions[hourZhi];
-            if (!hourZhiPosition) return;
+            // 获取主地支（时支或刻支）对应的位置
+            const mainZhiPosition = branchPositions[mainZhi];
+            if (!mainZhiPosition) return;
             
-            // 从时支位置开始，逆时针排列十二宫
+            // 从主地支位置开始，逆时针排列十二宫
             for (let i = 0; i < 12; i++) {
                 // 计算当前宫位
-                // 如果当前位置是hourZhiPosition，放置"命"宫
+                // 如果当前位置是mainZhiPosition，放置"命"宫
                 // 然后逆时针依次放置其他宫位
-                const position = (hourZhiPosition - i + 12) % 12;
+                const position = (mainZhiPosition - i + 12) % 12;
                 const actualPosition = position === 0 ? 12 : position; // 处理余数为0的情况
                 
                 // 获取单元格ID
@@ -1210,35 +1243,61 @@
                 '正印': '天权'
             };
             
+            // 获取当前干支
+            const currentGan = document.getElementById(type === 'hour' ? 'hour-gan' : 'ke-gan').textContent;
+            const currentZhi = document.getElementById(type === 'hour' ? 'hour-zhi' : 'ke-zhi').textContent;
+            const currentGanZhi = currentGan + currentZhi;
+            
+            // 确定当前干支在六十甲子中的索引
+            let currentGanzhiIndex = -1;
+            for (let i = 0; i < VALID_GANZHI_PAIRS.length; i++) {
+                if (VALID_GANZHI_PAIRS[i] === currentGanZhi) {
+                    currentGanzhiIndex = i;
+                    break;
+                }
+            }
+            
+            // 判断当前干支所处的旬
+            const xunIndex = Math.floor(currentGanzhiIndex / 10);
+            
+            // 六十甲子中六个旬的起始干
+            const xunStartGans = ['甲', '甲', '丙', '丙', '戊', '戊'];
+            const currentXunStartGan = xunIndex >= 0 && xunIndex < xunStartGans.length ? xunStartGans[xunIndex] : '?';
+            
+            // 确定当前旬的名称
+            const currentXun = `${currentXunStartGan}${diZhi[xunIndex * 2]}旬`;
+            
             let content = '<table class="table table-bordered">';
+            content += `<tr><th class="table-primary" colspan="4">当前${currentXun}</th></tr>`;
             content += '<tr><th class="table-primary">十神</th><th class="table-primary">化耀</th><th class="table-primary">天干</th><th class="table-primary">地支</th></tr>';
             
-            // 收集所有结果并按十神排序
-            const results = tianGan.map(targetGan => {
-                return {
-                    gan: targetGan,
-                    shishen: SHISHEN_MAP[gan]?.[targetGan] || '',
-                    tianxing: tianxingMap[SHISHEN_MAP[gan]?.[targetGan]] || '',
-                    zhi: GAN_TO_ZHI_MAP[targetGan]?.[0] || ''
-                };
-            });
-
-            // 定义十神顺序
-            const shishenOrder = ['比肩', '劫财', '食神', '伤官', '偏财', '正财', '七杀', '正官', '偏印', '正印'];
+            // 找出当前旬的起始干支（如甲子旬的"甲子"）
+            const xunStartIndex = xunIndex * 10;
             
-            // 按十神顺序排序
-            results.sort((a, b) => {
-                return shishenOrder.indexOf(a.shishen) - shishenOrder.indexOf(b.shishen);
-            });
-
-            // 生成表格内容
-            results.forEach(result => {
-                content += `<tr>
-                    <td>${result.shishen}</td>
-                    <td>${result.tianxing}</td>
-                    <td style="color: ${WUXING_COLORS[result.gan]}">${result.gan}</td>
-                    <td style="color: ${WUXING_COLORS[result.zhi]}">${result.zhi}</td>
-                </tr>`;
+            // 遍历所有天干
+            tianGan.forEach(targetGan => {
+                const shishen = SHISHEN_MAP[gan]?.[targetGan] || '';
+                const tianxing = tianxingMap[shishen] || '';
+                
+                // 判断该天干在当前旬中对应的地支
+                let matchingZhi = '';
+                
+                // 在当前旬中查找该天干对应的地支
+                for (let i = xunStartIndex; i < xunStartIndex + 10 && i < VALID_GANZHI_PAIRS.length; i++) {
+                    if (VALID_GANZHI_PAIRS[i][0] === targetGan) {
+                        matchingZhi = VALID_GANZHI_PAIRS[i][1];
+                        break;
+                    }
+                }
+                
+                if (matchingZhi) {
+                    content += `<tr>
+                        <td>${shishen}</td>
+                        <td>${tianxing}</td>
+                        <td style="color: ${WUXING_COLORS[targetGan]}">${targetGan}</td>
+                        <td style="color: ${WUXING_COLORS[matchingZhi]}">${matchingZhi}</td>
+                    </tr>`;
+                }
             });
             
             content += '</table>';
