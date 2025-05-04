@@ -1229,20 +1229,6 @@
             const modalId = type === 'hour' ? 'hourShishenModal' : 'keShishenModal';
             const contentId = type === 'hour' ? 'hourShishenContent' : 'keShishenContent';
             
-            // 化耀对应关系
-            const tianxingMap = {
-                '比肩': '天禄',
-                '劫财': '天暗',
-                '食神': '天暗',
-                '伤官': '天耗',
-                '偏财': '天荫',
-                '正财': '天贵',
-                '七杀': '天刑',
-                '正官': '天印',
-                '偏印': '天囚',
-                '正印': '天权'
-            };
-            
             // 获取当前干支
             const currentGan = document.getElementById(type === 'hour' ? 'hour-gan' : 'ke-gan').textContent;
             const currentZhi = document.getElementById(type === 'hour' ? 'hour-zhi' : 'ke-zhi').textContent;
@@ -1260,16 +1246,27 @@
             // 判断当前干支所处的旬
             const xunIndex = Math.floor(currentGanzhiIndex / 10);
             
-            // 六十甲子中六个旬的起始干
-            const xunStartGans = ['甲', '甲', '丙', '丙', '戊', '戊'];
-            const currentXunStartGan = xunIndex >= 0 && xunIndex < xunStartGans.length ? xunStartGans[xunIndex] : '?';
+            // 六个旬的名称：甲子、甲戌、甲申、甲午、甲辰、甲寅
+            const xunNames = ['甲子', '甲戌', '甲申', '甲午', '甲辰', '甲寅'];
+            const currentXun = xunIndex >= 0 && xunIndex < xunNames.length ? xunNames[xunIndex] + '旬' : '未知旬';
             
-            // 确定当前旬的名称
-            const currentXun = `${currentXunStartGan}${diZhi[xunIndex * 2]}旬`;
+            // 化耀对应关系
+            const tianxingMap = {
+                '比肩': '天禄',
+                '劫财': '天暗',
+                '食神': '天暗',
+                '伤官': '天耗',
+                '偏财': '天荫',
+                '正财': '天贵',
+                '七杀': '天刑',
+                '正官': '天印',
+                '偏印': '天囚',
+                '正印': '天权'
+            };
             
             let content = '<table class="table table-bordered">';
-            content += `<tr><th class="table-primary" colspan="4">当前${currentXun}</th></tr>`;
-            content += '<tr><th class="table-primary">十神</th><th class="table-primary">化耀</th><th class="table-primary">天干</th><th class="table-primary">地支</th></tr>';
+            content += `<tr><th class="table-primary" colspan="6">当前${currentXun}</th></tr>`;
+            content += '<tr><th class="table-primary">十神</th><th class="table-primary">化耀</th><th class="table-primary">天干</th><th class="table-primary">地支</th><th class="table-primary">纳音</th><th class="table-primary">十二长生</th></tr>';
             
             // 找出当前旬的起始干支（如甲子旬的"甲子"）
             const xunStartIndex = xunIndex * 10;
@@ -1291,11 +1288,24 @@
                 }
                 
                 if (matchingZhi) {
+                    // 获取纳音和十二长生信息
+                    const ganZhi = targetGan + matchingZhi;
+                    const nayin = NAYIN_MAP[ganZhi] || '';
+                    
+                    // 直接使用getLongevity函数，确保逻辑与主界面一致
+                    const shengxiao = getLongevity(gan, matchingZhi);
+                    
+                    // 添加纳音样式
+                    const nayinLastChar = nayin.slice(-1);
+                    const nayinColor = nayinLastChar ? naYinColors[nayinLastChar] : '#000';
+                    
                     content += `<tr>
                         <td>${shishen}</td>
                         <td>${tianxing}</td>
                         <td style="color: ${WUXING_COLORS[targetGan]}">${targetGan}</td>
                         <td style="color: ${WUXING_COLORS[matchingZhi]}">${matchingZhi}</td>
+                        <td style="color: ${nayinColor}">${nayin}</td>
+                        <td style="color: #000">${shengxiao}</td>
                     </tr>`;
                 }
             });
